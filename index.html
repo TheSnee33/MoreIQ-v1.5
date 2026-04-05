@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoreIQ — Know More. Win More.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <style>
+    :root {
+      --bg:#060a10;--bg2:#0d1117;--bg3:#161b22;--bg4:#21262d;--border:#30363d;
+      --purple:#7c3aed;--purple-lt:#a78bfa;
+      --date-accent:#e0427a;--date-lt:#ff6b9d;--date-glow:rgba(224,66,122,0.12);
+      --biz-accent:#3b82f6;--biz-lt:#60a5fa;--biz-glow:rgba(59,130,246,0.12);
+      --green:#22c55e;--red:#ef4444;--orange:#f59e0b;--teal:#14b8a6;--blue:#3b82f6;
+      --text:#f0f6fc;--text2:#8b949e;--text3:#484f58;
+      --phone-w:390px;--phone-h:844px;--radius:16px;--radius-sm:8px;
+      --font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-body);background:var(--bg);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+    #phone{width:var(--phone-w);height:var(--phone-h);background:var(--bg2);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 0 0 2px var(--border),0 0 0 8px var(--bg3),0 40px 80px rgba(0,0,0,.8),0 0 120px rgba(124,58,237,.1)}
+    #phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:var(--bg);border-radius:0 0 20px 20px;z-index:100}
+    .screen{display:none;flex-direction:column;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:absolute;top:0;left:0;background:var(--bg2);animation:fadeUp .3s ease}
+    .screen::-webkit-scrollbar{display:none}
+    .screen.active{display:flex}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes glow{from{filter:drop-shadow(0 0 20px rgba(124,58,237,.3))}to{filter:drop-shadow(0 0 40px rgba(124,58,237,.7))}}
+    @keyframes pulse-btn{0%,100%{box-shadow:0 8px 32px rgba(239,68,68,.4)}50%{box-shadow:0 8px 48px rgba(239,68,68,.7)}}
+    @keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.2);opacity:0}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+    .btn{display:block;width:100%;padding:16px;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;text-align:center;font-family:var(--font-body)}
+    .btn:active{transform:scale(.97)}
+    .btn-primary{background:linear-gradient(135deg,var(--purple),#5b21b6);color:#fff}
+    .btn-date{background:linear-gradient(135deg,var(--date-accent),#8b2fc9);color:#fff}
+    .btn-biz{background:linear-gradient(135deg,var(--biz-accent),#1e40af);color:#fff}
+    .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+    .back-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:4px 0;font-family:var(--font-body)}
+    .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+    .tag-green{background:rgba(34,197,94,.15);color:var(--green)}
+    .tag-red{background:rgba(239,68,68,.15);color:var(--red)}
+    .tag-orange{background:rgba(245,158,11,.15);color:var(--orange)}
+
+    /* ── Splash ── */
+    #splash{background:radial-gradient(ellipse at 50% 40%,rgba(124,58,237,.12) 0%,var(--bg2) 70%);justify-content:center;align-items:center;gap:16px}
+    .splash-logo{font-family:var(--font-display);font-size:52px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,#a78bfa,#e0427a,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:glow 2s ease-in-out infinite alternate}
+    .splash-emoji{font-size:56px}
+    .splash-tagline{color:var(--text2);font-size:14px;letter-spacing:3px;text-transform:uppercase}
+    .splash-modes{display:flex;gap:20px;margin-top:8px}
+    .splash-modes span{font-size:12px}
+    .splash-modes .date{color:var(--date-lt)}
+    .splash-modes .biz{color:var(--biz-lt)}
+    .splash-modes .sep{color:var(--text3)}
+
+    /* ── Terms ── */
+    #disclaimers{padding:50px 24px 40px}
+    .disc-heading{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px}
+    .disc-sub{font-size:11px;color:var(--text3);text-align:center;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+    .disc-body{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;max-height:420px;overflow-y:auto;scrollbar-width:thin;margin-bottom:16px}
+    .disc-body::-webkit-scrollbar{width:4px}
+    .disc-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+    .disc-sec{margin-bottom:14px}.disc-sec:last-child{margin-bottom:0}
+    .disc-sec-num{font-size:11px;font-weight:700;color:var(--purple-lt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+    .disc-sec p{font-size:12px;color:var(--text2);line-height:1.65}
+    .disc-div{height:1px;background:var(--border);margin:14px 0}
+
+    /* ── Onboard ── */
+    #onboard{padding:50px 24px 40px}
+    .onboard-emoji{font-size:48px;text-align:center;margin-bottom:8px}
+    .onboard-h1{font-family:var(--font-display);font-size:30px;font-weight:800;line-height:1.15;color:var(--text);text-align:center;margin-bottom:10px}
+    .onboard-h1 .grad{background:linear-gradient(135deg,#e0427a,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .onboard-sub{color:var(--text2);font-size:14px;line-height:1.6;text-align:center;margin-bottom:20px}
+    .features{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+    .feature-row{display:flex;align-items:flex-start;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+    .feature-icon{font-size:24px;line-height:1;flex-shrink:0}
+    .feature-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .feature-desc{font-size:13px;color:var(--text2);line-height:1.4}
+    .trial-banner{background:var(--bg3);border:1px solid rgba(34,197,94,.25);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;text-align:center}
+    .trial-banner-title{font-size:13px;color:var(--green);font-weight:600}
+    .trial-banner-sub{font-size:12px;color:var(--text2);margin-top:4px}
+
+    /* ── Mode Select ── */
+    #modeSelect{padding:50px 24px 40px}
+    .mode-card{background:var(--bg3);border-radius:20px;padding:24px;margin-bottom:14px;border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s}
+    .mode-card:hover{border-color:var(--text3)}
+    .mode-card .stripe{position:absolute;top:0;left:0;right:0;height:3px}
+    .mode-card.date .stripe{background:linear-gradient(90deg,var(--date-accent),var(--date-lt))}
+    .mode-card.biz .stripe{background:linear-gradient(90deg,var(--biz-accent),var(--biz-lt))}
+    .mode-inner{display:flex;align-items:center;gap:16px}
+    .mode-emoji{font-size:44px}
+    .mode-title{font-family:var(--font-display);font-size:24px;font-weight:700}
+    .mode-card.date .mode-title{color:var(--date-lt)}
+    .mode-card.biz .mode-title{color:var(--biz-lt)}
+    .mode-desc{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5}
+
+    /* ── Recording ── */
+    #recording{padding:50px 24px 40px;align-items:center}
+    .rec-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .rec-mode-badge{display:flex;align-items:center;gap:6px}
+    .rec-mode-badge .label{font-family:var(--font-display);font-size:18px;font-weight:700}
+    .date-mode .rec-mode-badge .label{color:var(--date-lt)}
+    .biz-mode .rec-mode-badge .label{color:var(--biz-lt)}
+    .subject-input{width:100%;padding:14px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:15px;outline:none;margin-bottom:16px;font-family:var(--font-body)}
+    .subject-input:focus{border-color:var(--purple)}
+    .subject-input::placeholder{color:var(--text3)}
+    .context-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;width:100%}
+    .ctx-tag{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-body)}
+    .ctx-tag.active{border-color:var(--purple);background:rgba(124,58,237,.1);color:var(--purple-lt)}
+    .date-mode .ctx-tag.active{border-color:var(--date-accent);background:var(--date-glow);color:var(--date-lt)}
+    .biz-mode .ctx-tag.active{border-color:var(--biz-accent);background:var(--biz-glow);color:var(--biz-lt)}
+
+    .coaching-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:12px 16px;margin-bottom:20px;border:1px solid var(--border);cursor:pointer;width:100%}
+    .coaching-toggle.active{border-color:rgba(20,184,166,.3)}
+    .coaching-left{display:flex;align-items:center;gap:10px}
+    .coaching-label{font-size:13px;font-weight:600;color:var(--text)}
+    .coaching-toggle.active .coaching-label{color:var(--teal)}
+    .coaching-sub{font-size:11px;color:var(--text2)}
+    .toggle-track{width:40px;height:22px;border-radius:11px;background:var(--text3);position:relative;transition:background .2s}
+    .coaching-toggle.active .toggle-track{background:var(--teal)}
+    .toggle-thumb{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s}
+    .coaching-toggle.active .toggle-thumb{left:20px}
+
+    .record-area{display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;margin-bottom:24px}
+    .record-wrap{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+    .ripple{position:absolute;border-radius:50%;border:2px solid var(--purple);opacity:0;width:140px;height:140px}
+    .recording-active .ripple:nth-child(1){animation:ripple 1.8s ease-out infinite}
+    .recording-active .ripple:nth-child(2){animation:ripple 1.8s ease-out .6s infinite}
+    .recording-active .ripple:nth-child(3){animation:ripple 1.8s ease-out 1.2s infinite}
+    #recordBtn{width:100px;height:100px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;font-size:36px}
+    .date-mode #recordBtn{background:linear-gradient(135deg,var(--date-accent),#8b2fc9);box-shadow:0 8px 32px var(--date-glow)}
+    .biz-mode #recordBtn{background:linear-gradient(135deg,var(--biz-accent),#1e40af);box-shadow:0 8px 32px var(--biz-glow)}
+    .recording-active #recordBtn{background:linear-gradient(135deg,var(--red),#7f1d1d)!important;box-shadow:0 8px 32px rgba(239,68,68,.4)!important;animation:pulse-btn 1s ease-in-out infinite}
+    #timer{font-family:var(--font-display);font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);letter-spacing:2px}
+    #recordStatus{font-size:13px;color:var(--text2);text-align:center}
+    .recording-active #recordStatus{color:var(--red)}
+
+    /* ── Processing ── */
+    #processing{padding:60px 24px 40px;align-items:center;justify-content:center;gap:24px}
+    .processing-emoji{font-size:64px;animation:spin 2s linear infinite}
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .processing-title{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text);text-align:center}
+    .processing-sub{font-size:14px;color:var(--text2);text-align:center}
+    .steps-list{width:100%;display:flex;flex-direction:column;gap:10px;max-width:340px}
+    .step{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;border:1px solid transparent;opacity:.25;transition:all .5s}
+    .step.active{opacity:1;background:var(--bg3);border-color:var(--border)}
+    .step-icon{font-size:16px;width:24px;text-align:center}
+    .step-text{font-size:13px;color:var(--text2)}
+    .step.active .step-text{color:var(--text)}
+
+    /* ── Report ── */
+    #report{padding:50px 24px 40px}
+    .report-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .report-mode{display:flex;align-items:center;gap:6px}
+    .report-mode .label{font-family:var(--font-display);font-size:20px;font-weight:700}
+    .score-card{background:var(--bg3);border-radius:20px;padding:24px;margin-bottom:16px;border:1px solid var(--border);text-align:center}
+    .subject-name{font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px}
+    .score-context{color:var(--text2);font-size:12px;margin-bottom:16px}
+    .radial-wrap{display:flex;justify-content:center;margin-bottom:16px}
+    .score-summary{font-size:13px;color:var(--text);line-height:1.6;font-style:italic}
+    .score-stats{display:flex;justify-content:center;gap:16px;margin-top:16px}
+    .stat{text-align:center}
+    .stat-num{font-size:20px;font-weight:700}
+    .stat-label{font-size:11px;color:var(--text2)}
+    .stat-sep{width:1px;background:var(--border)}
+
+    .report-tabs{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:16px}
+    .report-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;color:var(--text2)}
+    .report-tab.active{background:var(--bg3);color:var(--text)}
+
+    .cat-header{margin-bottom:8px}
+    .cat-header-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;cursor:pointer}
+    .cat-left{display:flex;align-items:center;gap:10px}
+    .cat-icon{font-size:20px}
+    .cat-label{font-weight:700;font-size:15px;color:var(--text)}
+    .cat-tagline{font-size:12px;color:var(--text2)}
+    .cat-chevron{color:var(--text2);font-size:14px;transition:transform .2s}
+    .cat-chevron.open{transform:rotate(180deg)}
+    .cat-desc{padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;font-size:13px;color:var(--text2);line-height:1.6;display:none}
+    .cat-desc.open{display:block}
+
+    .trait-card{background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:6px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s}
+    .trait-card.expanded{border-color:var(--purple)}
+    .trait-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .trait-info{flex:1}
+    .trait-name-row{display:flex;align-items:center;gap:8px}
+    .trait-name{font-weight:600;font-size:14px}
+    .trait-desc{font-size:11px;color:var(--text2);margin-top:2px}
+    .trait-score{margin-left:12px;text-align:right}
+    .trait-score-num{font-family:var(--font-display);font-size:22px;font-weight:700}
+    .trait-score-max{font-size:11px;color:var(--text2)}
+    .trait-notes{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.6;font-style:italic;display:none}
+    .trait-card.expanded .trait-notes{display:block}
+
+    .bar{width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+    .meter{position:relative;width:100%;height:10px;border-radius:5px}
+    .meter-polar{background:linear-gradient(90deg,var(--red) 0%,var(--red) 32%,var(--orange) 32%,var(--orange) 65%,var(--green) 65%,var(--green) 100%)}
+    .meter-balance{background:linear-gradient(90deg,var(--red) 0%,var(--red) 25%,var(--green) 25%,var(--green) 75%,var(--red) 75%,var(--red) 100%)}
+    .meter-dot{position:absolute;top:-3px;width:16px;height:16px;border-radius:50%;background:#fff;border-width:2px;border-style:solid;transition:left 1s ease;box-shadow:0 2px 8px rgba(0,0,0,.4);transform:translateX(-50%)}
+    .meter-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:4px}
+    .meter-labels .mid{color:var(--green)}
+
+    /* ── Interests Panel ── */
+    .interests-panel{background:var(--bg3);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:16px}
+    .interests-title{font-weight:700;font-size:16px;margin-bottom:14px}
+    .date-mode .interests-title{color:var(--date-lt)}
+    .biz-mode .interests-title{color:var(--biz-lt)}
+    .interest-section{margin-bottom:14px}
+    .interest-section:last-child{margin-bottom:0}
+    .interest-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+    .interest-header .icon{font-size:14px}
+    .interest-header .label{font-size:13px;font-weight:600}
+    .interest-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .interest-tag{padding:4px 10px;border-radius:20px;font-size:12px}
+
+    /* ── Deal Panel ── */
+    .deal-panel{background:var(--bg3);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:16px}
+    .deal-title{font-weight:700;font-size:16px;color:var(--biz-lt);margin-bottom:14px}
+    .deal-section{margin-bottom:12px}
+    .deal-section:last-child{margin-bottom:0}
+    .deal-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .deal-stage-badge{display:inline-block;padding:6px 14px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:20px;font-size:14px;font-weight:600;color:var(--blue);text-transform:capitalize}
+    .deal-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+    .deal-item .arrow{font-size:14px;margin-top:1px}
+    .deal-item .text{font-size:13px;color:var(--text);line-height:1.5}
+
+    .footer-legal{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:16px;font-size:11px;color:var(--text3);line-height:1.6}
+
+    /* Auth (reuse from DateIQ) */
+    .auth-tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:3px;margin-bottom:18px}
+    .auth-tab{flex:1;padding:10px;text-align:center;font-size:14px;font-weight:600;color:var(--text2);border-radius:6px;cursor:pointer}
+    .auth-tab.active{background:var(--bg3);color:var(--text)}
+    .auth-field{margin-bottom:12px}
+    .auth-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
+    .auth-input{width:100%;padding:12px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);box-sizing:border-box}
+    .auth-input:focus{border-color:var(--purple)}
+    .auth-input::placeholder{color:var(--text3)}
+    .auth-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;margin-bottom:12px;display:none;line-height:1.4}
+    .auth-error.show{display:block}
+  </style>
+</head>
+<body>
+
+<div id="phone">
+
+  <!-- ════ SPLASH ════ -->
+  <div id="splash" class="screen active">
+    <div class="splash-emoji">🧠</div>
+    <div class="splash-logo">MoreIQ</div>
+    <div class="splash-tagline">Know More. Win More.</div>
+    <div class="splash-modes">
+      <span class="date" onclick="selectMode('date')" style="cursor:pointer">💘 DateIQ</span>
+      <span class="sep">|</span>
+      <span class="biz" onclick="selectMode('business')" style="cursor:pointer">💼 BusinessIQ</span>
+    </div>
+    <div style="color:var(--text3);font-size:11px;margin-top:16px;cursor:pointer;letter-spacing:1px" onclick="navigate('disclaimers')">TAP TO CONTINUE</div>
+  </div>
+
+  <!-- ════ DISCLAIMERS ════ -->
+  <div id="disclaimers" class="screen">
+    <div class="disc-heading">Terms & Disclaimers</div>
+    <div class="disc-sub">MoreIQ — User Agreement</div>
+    <div class="disc-body" id="discBody" style="max-height: 250px;"></div>
+    
+    <div id="checklist" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:0 10px;">
+      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand the results do not constitute a medical or psychological diagnosis.
+      </label>
+      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" class="disc-check" style="margin-top:2px"> I will not use results to disparage or harass individuals; posting results on social media is highly discouraged.
+      </label>
+      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand this is a tool for educated decisions, but it does not replace my intuition.
+      </label>
+      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand data cannot be used in a court of law. If unsafe, I will call 911.
+      </label>
+      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand my self-worth is not correlated to results, and I will use this to protect my energy.
+      </label>
+    </div>
+    
+    <div id="discError" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:8px;display:none">Please check all boxes to proceed.</div>
+    <button class="btn btn-primary" onclick="checkAndNavigate('onboard')">I Agree</button>
+  </div>
+
+  <!-- ════ ONBOARD ════ -->
+  <div id="onboard" class="screen">
+    <div class="onboard-emoji">🧠</div>
+    <div class="onboard-h1">Intelligence for<br><span class="grad">every conversation.</span></div>
+    <div class="onboard-sub">Record any conversation and get AI-powered analysis across <strong style="color:var(--text)">37 key traits</strong> — for dating <em>and</em> business.</div>
+    <div class="features">
+      <div class="feature-row"><div class="feature-icon">💘</div><div><div class="feature-title">DateIQ</div><div class="feature-desc">Personality analysis for dates — spot red flags, find green flags</div></div></div>
+      <div class="feature-row"><div class="feature-icon">💼</div><div><div class="feature-title">BusinessIQ</div><div class="feature-desc">Sales intelligence — read prospects, track deals, close smarter</div></div></div>
+      <div class="feature-row"><div class="feature-icon">🎧</div><div><div class="feature-title">Live Coaching</div><div class="feature-desc">Whispered suggestions through your Bluetooth headset in real-time</div></div></div>
+      <div class="feature-row"><div class="feature-icon">📝</div><div><div class="feature-title">Interest Tracking</div><div class="feature-desc">AI notes what they like, dislike, and mention — never forget a detail</div></div></div>
+    </div>
+    <div class="trial-banner">
+      <div class="trial-banner-title">Try 2 recordings free — no account needed</div>
+      <div class="trial-banner-sub">Create an account to save results and earn credits</div>
+    </div>
+    <button class="btn btn-primary" onclick="navigate('modeSelect')" style="margin-bottom:10px">Get Started</button>
+    <button class="btn btn-outline" onclick="navigate('signup')">I already have an account</button>
+  </div>
+
+  <!-- ════ MODE SELECT ════ -->
+  <div id="modeSelect" class="screen">
+    <div style="padding:50px 24px 40px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:40px;margin-bottom:8px">🧠</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text)">Choose Your Mode</div>
+        <div style="color:var(--text2);font-size:14px;margin-top:6px">What kind of conversation are you analyzing?</div>
+      </div>
+      <div class="mode-card date" onclick="selectMode('date')">
+        <div class="stripe"></div>
+        <div class="mode-inner">
+          <div class="mode-emoji">💘</div>
+          <div>
+            <div class="mode-title">DateIQ</div>
+            <div class="mode-desc">Personality analysis for dates and relationships. Score 37 traits across red flags, green flags, and behavioral patterns.</div>
+          </div>
+        </div>
+      </div>
+      <div class="mode-card biz" onclick="selectMode('business')">
+        <div class="stripe"></div>
+        <div class="mode-inner">
+          <div class="mode-emoji">💼</div>
+          <div>
+            <div class="mode-title">BusinessIQ</div>
+            <div class="mode-desc">Sales intelligence for meetings and calls. Score buyer signals, risk indicators, and deal readiness across 37 traits.</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="margin-top:10px" onclick="navigate('subscription')">Credits & Subscriptions</button>
+      <button class="btn btn-outline" style="margin-top:10px" onclick="navigate('voiceTraining')">Train Voice Profile 🎙️</button>
+    </div>
+  </div>
+
+  <!-- ════ SUBSCRIPTION / CREDITS ════ -->
+  <div id="subscription" class="screen">
+    <div style="padding:50px 24px 40px">
+      <button class="back-btn" onclick="navigate('modeSelect')" style="margin-bottom:20px">← Back</button>
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:40px;margin-bottom:8px">💳</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">Credits & Storage</div>
+      </div>
+      
+      <div class="score-card" style="margin-bottom:20px;text-align:left">
+        <div style="font-size:14px;color:var(--text2);margin-bottom:4px">Your Balance</div>
+        <div style="font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--purple-lt)">50 Credits</div>
+        <div style="font-size:11px;color:var(--orange)">Storage Warning: Non-subscription data deleted after 30 days!</div>
+      </div>
+
+      <div class="cat-header-bar" style="margin-bottom:12px;display:flex;flex-direction:column;align-items:start">
+        <div style="font-size:16px;font-weight:700">Pay Per Play</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">5 credits per 30-min segment. 30 Days Storage.</div>
+      </div>
+
+      <div class="cat-header-bar" style="margin-bottom:12px;display:flex;flex-direction:column;align-items:start;border-color:var(--green)">
+        <div style="font-size:16px;font-weight:700;color:var(--green)">Subscriptions (Discounted to 3 cr/segment)</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;margin-bottom:8px">Continuous storage up to 80 hours</div>
+        <div style="width:100%;display:flex;gap:10px;margin-bottom:8px">
+           <button class="btn btn-outline" style="padding:8px;font-size:12px">3 Hours</button>
+           <button class="btn btn-outline" style="padding:8px;font-size:12px">6 Hours</button>
+           <button class="btn btn-outline" style="padding:8px;font-size:12px">12 Hours</button>
+        </div>
+        <div style="width:100%;display:flex;gap:10px">
+           <button class="btn btn-outline" style="padding:8px;font-size:12px">30 Hours</button>
+           <button class="btn btn-outline" style="padding:8px;font-size:12px">Custom (to 80h)</button>
+        </div>
+      </div>
+      
+      <div class="cat-header-bar" style="display:flex;flex-direction:column;align-items:start;margin-top:20px">
+        <div style="font-size:16px;font-weight:700">Affiliate Link</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;margin-bottom:8px">Earn up to 20 credits per referral!</div>
+        <input class="auth-input" readonly value="https://moreiq.app/ref=YOUR_CODE_HERE" style="background:var(--bg2)">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ VOICE TRAINING ════ -->
+  <div id="voiceTraining" class="screen">
+    <div style="padding:50px 24px 40px;align-items:center">
+      <button class="back-btn" onclick="navigate('modeSelect')" style="margin-bottom:20px;width:100%;text-align:left">← Back</button>
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:40px;margin-bottom:8px">🎙️</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">Voice Recognition</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:8px">Allow AI to separate your voice from your prospect/date. Record 15 seconds of your baseline voice.</div>
+      </div>
+      
+      <div class="record-area">
+        <button id="trainRecordBtn" class="btn btn-outline" style="height:100px;width:100px;border-radius:50%;font-size:32px" onclick="this.textContent = 'Recording...' ; setTimeout(()=> { this.innerHTML='✅ Saved'; this.style.borderColor='var(--green)'; this.style.color='var(--green)'; }, 3000)">🎙️</button>
+        <div style="font-size:12px;color:var(--text3);margin-top:12px">Tap to begin voice footprinting</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════ SIGNUP ════ -->
+  <div id="signup" class="screen">
+    <div style="padding:50px 24px 40px">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:48px;margin-bottom:8px">🧠</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700" id="authTitle">Create Your Account</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:6px" id="authSubtitle">Get 5 free credits when you sign up</div>
+      </div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabSignup" onclick="switchAuth('signup')">Sign Up</div>
+        <div class="auth-tab" id="tabSignin" onclick="switchAuth('signin')">Sign In</div>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div id="signupFields">
+        <div class="auth-field"><label class="auth-label">Full Name</label><input class="auth-input" id="authName" placeholder="Your name"></div>
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmail" type="email" placeholder="you@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Phone Number</label><input class="auth-input" id="authPhone" type="tel" placeholder="(555) 555-5555"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPassword" type="password" placeholder="At least 6 characters"></div>
+        <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="authConfirm" type="password" placeholder="Re-enter password"></div>
+        <div class="auth-field"><label class="auth-label">Instagram Handle</label><input class="auth-input" id="authIG" placeholder="@yourhandle"></div>
+      </div>
+      <div id="signinFields" style="display:none">
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmailIn" type="email" placeholder="you@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPasswordIn" type="password" placeholder="Your password"></div>
+      </div>
+      <button class="btn btn-primary" id="authSubmitBtn" onclick="handleAuth()" style="margin-bottom:10px">Create Account</button>
+      <button class="btn btn-outline" id="skipAuthBtn" onclick="navigate('modeSelect')">Skip — 2 free trials left</button>
+    </div>
+  </div>
+
+  <!-- ════ RECORDING ════ -->
+  <div id="recording" class="screen date-mode">
+    <div style="padding:50px 24px 40px;display:flex;flex-direction:column;align-items:center">
+      <div class="rec-header">
+        <button class="back-btn" onclick="navigate('modeSelect')">← Back</button>
+        <div class="rec-mode-badge">
+          <span id="recModeIcon">💘</span>
+          <span class="label" id="recModeLabel">DateIQ</span>
+        </div>
+        <div style="min-width:48px;text-align:right">
+          <div id="recUserBadge" style="font-size:11px;font-weight:600;color:var(--orange)">Trial 1/2</div>
+        </div>
+      </div>
+      <input class="subject-input" id="subjectInput" placeholder="Date's name (e.g. Jessica, Mike...)">
+      <div class="context-tags" id="contextTags"></div>
+
+      <div class="coaching-toggle" id="coachingToggle" onclick="toggleCoaching()">
+        <div class="coaching-left">
+          <span style="font-size:20px">🎧</span>
+          <div>
+            <div class="coaching-label">Live Coaching</div>
+            <div class="coaching-sub">Whispered tips via Bluetooth headset</div>
+          </div>
+        </div>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div class="record-area" id="recordArea">
+        <div id="geoWarning" style="display:none;width:100%;margin-bottom:16px;background:rgba(245,158,11,0.1);border:1px solid var(--orange);border-radius:10px;padding:12px">
+           <div style="color:var(--orange);font-size:12px;font-weight:700;margin-bottom:4px">⚠️ ALL-PARTY CONSENT STATE</div>
+           <label style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--text2);cursor:pointer">
+             <input type="checkbox" id="geoConsentCheck" style="margin-top:2px"> I confirm that all parties present have consented to being recorded.
+           </label>
+        </div>
+        <div class="record-wrap" id="recordWrap">
+          <div class="ripple"></div><div class="ripple"></div><div class="ripple"></div>
+          <button id="recordBtn" onclick="verifyConsentAndRecord()">🎙️</button>
+        </div>
+        <div id="timer" style="display:none">00:00</div>
+        <div id="recordStatus">Tap to begin recording</div>
+      </div>
+
+      <div id="transcriptBox" style="display:none;width:100%;background:var(--bg3);border-radius:14px;padding:16px;border:1px solid var(--border);margin-bottom:16px;max-height:120px;overflow-y:auto">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Live Transcript</div>
+        <div id="transcriptText" style="font-size:13px;color:var(--text);line-height:1.6"></div>
+      </div>
+
+      <div id="pasteArea" style="width:100%;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Or paste a transcript manually:</div>
+        <textarea id="pasteTranscript" placeholder="Paste conversation transcript here..." style="width:100%;min-height:100px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:var(--font-body);resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+
+      <button id="analyzeBtn" class="btn" style="display:none;width:100%" onclick="startAnalysis()">Analyze 37 Traits</button>
+    </div>
+  </div>
+
+  <!-- ════ PROCESSING ════ -->
+  <div id="processing" class="screen">
+    <div style="padding:60px 24px 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;min-height:100%">
+      <div class="processing-emoji" id="processingEmoji">💘</div>
+      <div class="processing-title">Analyzing...</div>
+      <div class="processing-sub" id="processingSub"></div>
+      <div class="steps-list" id="stepsList"></div>
+    </div>
+  </div>
+
+  <!-- ════ REPORT ════ -->
+  <div id="report" class="screen">
+    <div style="padding:50px 24px 40px" id="reportContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════════
+// MoreIQ v1.4 — JavaScript Engine
+// ════════════════════════════════════════════════════════════════════════════════
+
+// ── Firebase ──
+const firebaseConfig = { apiKey:"YOUR_FIREBASE_API_KEY", authDomain:"dateiq-3f9b8.firebaseapp.com", projectId:"dateiq-3f9b8", storageBucket:"dateiq-3f9b8.firebasestorage.app", messagingSenderId:"207321464918", appId:"1:207321464918:web:72cf7d7221cdaaf0f6fbf7", measurementId:"G-8XLCEBL23H" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+let currentUser = null;
+
+// ── State ──
+let currentMode = null; // "date" | "business"
+let currentContext = "";
+let isRecording = false;
+let recordingTime = 0;
+let timerInterval = null;
+let trialCount = 0;
+const MAX_TRIALS = 2;
+let recognition = null;
+let liveTranscript = "";
+let currentReport = null;
+let coachingActive = false;
+
+// ── Terms ──
+const TERMS = [
+  {num:"Section 1 — User Generated Content",text:"All recordings are considered 'user-generated content'. You assume all legal liability and responsibility for data privacy and obtaining necessary consents under local and federal laws."},
+  {num:"Section 2 — Public Disclosure Ban",text:"You agree that all recordings and resulting analyses must never be made public. These tools are strictly for personal or internal business education."},
+  {num:"Section 3 — Subscription Deletion",text:"Accounts that cancel or fail to pay for their subscription will have their stored audio data permanently deleted within 72 hours. You are responsible for downloading backups beforehand."},
+  {num:"Section 4 — Marketing Consent",text:"By creating an account, you agree that your contact info (email, social handle, phone) may be used for internal marketing purposes."},
+  {num:"Section 5 — Results Disclaimer",text:"Analysis results are purely AI-derived and do not constitute professional evaluation. Furthermore, you agree not to rely on this data over your own intuition or personal safety. If you feel unsafe, call 911."}
+]; //
+
+// ── Trait Definitions ──
+const DATE_CONTEXTS = ["First Date","Second Date","Friendship","Family","Business Meeting"];
+const BIZ_CONTEXTS = ["Sales Call","Discovery Call","Demo Meeting","Negotiation","Follow-Up","Networking"];
+
+const DATE_CATEGORIES = {
+  negative:{label:"Negative Traits",tagline:"Red flags to watch for",description:"Scored 0-100 where lower is better.",icon:"🚩",zones:[{min:0,max:32,c:"green",l:"Low risk"},{min:33,max:65,c:"orange",l:"Moderate"},{min:66,max:100,c:"red",l:"High risk"}]},
+  positive:{label:"Positive Traits",tagline:"Green flags indicating a good match",description:"Scored 0-100 where higher is better.",icon:"💚",zones:[{min:0,max:32,c:"red",l:"Low"},{min:33,max:65,c:"orange",l:"Moderate"},{min:66,max:100,c:"green",l:"Strong"}]},
+  polar:{label:"Polar Opposite Traits",tagline:"No healthy balance — lean toward the ideal",description:"One end ideal, other worst-case. Higher is better.",icon:"⚖️",zones:[{min:0,max:32,c:"red",l:"Worst"},{min:33,max:65,c:"orange",l:"Mixed"},{min:66,max:100,c:"green",l:"Ideal"}]},
+  balance:{label:"Traits Requiring Balance",tagline:"Extremes are problematic",description:"Middle zone (26-75) is ideal.",icon:"🎯",zones:[{min:0,max:25,c:"red",l:"Too low"},{min:26,max:75,c:"green",l:"Healthy"},{min:76,max:100,c:"red",l:"Too high"}]},
+};
+const BIZ_CATEGORIES = {
+  buyer:{label:"Buyer Signals",tagline:"Positive purchase intent indicators",description:"Scored 0-100 where higher is better.",icon:"💰",zones:[{min:0,max:32,c:"red",l:"Weak"},{min:33,max:65,c:"orange",l:"Moderate"},{min:66,max:100,c:"green",l:"Strong"}]},
+  risk:{label:"Risk Signals",tagline:"Red flags that may stall the deal",description:"Scored 0-100 where lower is better.",icon:"⚠️",zones:[{min:0,max:32,c:"green",l:"Low risk"},{min:33,max:65,c:"orange",l:"Moderate"},{min:66,max:100,c:"red",l:"High risk"}]},
+  polar:{label:"Personality Indicators",tagline:"Character scales — lean toward ideal",description:"Higher is better, no healthy middle.",icon:"🤝",zones:[{min:0,max:32,c:"red",l:"Worst"},{min:33,max:65,c:"orange",l:"Mixed"},{min:66,max:100,c:"green",l:"Ideal"}]},
+  balance:{label:"Behavioral Balance",tagline:"Extremes hurt the deal",description:"Middle zone (26-75) is ideal.",icon:"📊",zones:[{min:0,max:25,c:"red",l:"Too low"},{min:26,max:75,c:"green",l:"Healthy"},{min:76,max:100,c:"red",l:"Too high"}]},
+};
+
+// ── Navigation ──
+function navigate(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId)?.classList.add('active');
+  if (screenId === 'disclaimers') buildTerms();
+}
+
+function buildTerms() {
+  const body = document.getElementById('discBody');
+  body.innerHTML = TERMS.map((t,i) => `${i>0?'<div class="disc-div"></div>':''}<div class="disc-sec"><div class="disc-sec-num">${t.num}</div><p>${t.text}</p></div>`).join('');
+}
+
+// ── Mode Selection ──
+function selectMode(mode) {
+  currentMode = mode;
+  const rec = document.getElementById('recording');
+  rec.className = `screen active ${mode==='business'?'biz-mode':'date-mode'}`;
+  document.getElementById('recModeIcon').textContent = mode==='business'?'💼':'💘';
+  document.getElementById('recModeLabel').textContent = mode==='business'?'BusinessIQ':'DateIQ';
+  document.getElementById('subjectInput').placeholder = mode==='business'?"Prospect's name (e.g. John, Acme Corp...)":"Date's name (e.g. Jessica, Mike...)";
+  document.getElementById('analyzeBtn').className = `btn ${mode==='business'?'btn-biz':'btn-date'}`;
+  document.getElementById('analyzeBtn').textContent = `Analyze 37 ${mode==='business'?'Business':'Dating'} Traits`;
+
+  // Build context tags
+  const contexts = mode==='business' ? BIZ_CONTEXTS : DATE_CONTEXTS;
+  currentContext = contexts[0];
+  const container = document.getElementById('contextTags');
+  container.innerHTML = contexts.map(c => `<button class="ctx-tag${c===currentContext?' active':''}" onclick="selectContext(this,'${c}')">${c}</button>`).join('');
+
+  navigate('recording');
+}
+
+function selectContext(el, ctx) {
+  currentContext = ctx;
+  document.querySelectorAll('.ctx-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Coaching ──
+function toggleCoaching() {
+  coachingActive = !coachingActive;
+  const el = document.getElementById('coachingToggle');
+  el.classList.toggle('active', coachingActive);
+  if (coachingActive && window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance("Coaching connected. I'll whisper suggestions during the conversation.");
+    u.volume = 0.3; u.rate = 0.95;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+// ── Recording ──
+function checkAndNavigate(tgt) {
+  const checks = document.querySelectorAll('.disc-check');
+  if (Array.from(checks).every(c => c.checked)) {
+    document.getElementById('discError').style.display='none';
+    navigate(tgt);
+  } else {
+    document.getElementById('discError').style.display='block';
+  }
+}
+
+const ALL_PARTY_STATES = ["California", "Connecticut", "Florida", "Illinois", "Maryland", "Massachusetts", "Montana", "New Hampshire", "Pennsylvania", "Washington"];
+let inAllPartyState = false;
+
+// Mock geo check for demo
+navigator.geolocation.getCurrentPosition((pos) => {
+  // In production, reverse geocode pos.coords to check state
+  // For demo, we randomly toggle or simulate California
+  inAllPartyState = true; 
+  if (inAllPartyState) {
+    document.getElementById('geoWarning').style.display = 'block';
+  }
+});
+
+function verifyConsentAndRecord() {
+  if (isRecording) {
+    stopRec();
+    return;
+  }
+  if (inAllPartyState && !document.getElementById('geoConsentCheck').checked) {
+    alert("You are in a two-party/all-party consent state. You must check the consent box to record.");
+    return;
+  }
+  
+  if (inAllPartyState && window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance("Recording started. Please ensure all parties consent.");
+    u.volume = 0.5; u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+    // Wait for synth to finish before starting rec
+    u.onend = startRec;
+  } else {
+    startRec();
+  }
+}
+
+function startRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Speech recognition not supported. Use Chrome."); return; }
+  liveTranscript = "";
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+  recognition.onresult = e => {
+    let f = "";
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) f += e.results[i][0].transcript + " ";
+    }
+    liveTranscript = f;
+    document.getElementById('transcriptText').textContent = f;
+    if (f) {
+      document.getElementById('transcriptBox').style.display = 'block';
+      document.getElementById('pasteArea').style.display = 'none';
+    }
+  };
+  recognition.start();
+  isRecording = true;
+  recordingTime = 0;
+  document.getElementById('recordWrap').parentElement.parentElement.classList.add('recording-active');
+  document.getElementById('timer').style.display = 'block';
+  document.getElementById('recordStatus').textContent = 'RECORDING — tap to stop';
+  document.getElementById('recordBtn').textContent = '⏹';
+  document.getElementById('pasteArea').style.display = 'none';
+  timerInterval = setInterval(() => {
+    recordingTime++;
+    const m = String(Math.floor(recordingTime/60)).padStart(2,'0');
+    const s = String(recordingTime%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function stopRec() {
+  if (recognition) recognition.stop();
+  isRecording = false;
+  clearInterval(timerInterval);
+  document.getElementById('recordWrap').parentElement.parentElement.classList.remove('recording-active');
+  document.getElementById('recordStatus').textContent = formatTimeFn(recordingTime) + ' recorded';
+  document.getElementById('recordStatus').style.color = 'var(--green)';
+  document.getElementById('recordBtn').textContent = '🎙️';
+  showAnalyzeBtn();
+}
+
+function showAnalyzeBtn() {
+  const t = liveTranscript || document.getElementById('pasteTranscript')?.value;
+  if (t && t.trim()) {
+    document.getElementById('analyzeBtn').style.display = 'block';
+  }
+}
+
+function formatTimeFn(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+// Listen for paste changes
+document.addEventListener('DOMContentLoaded', () => {
+  const pa = document.getElementById('pasteTranscript');
+  if (pa) pa.addEventListener('input', showAnalyzeBtn);
+});
+
+// ── Analysis ──
+async function startAnalysis() {
+  const transcript = liveTranscript || document.getElementById('pasteTranscript')?.value || "";
+  if (!transcript.trim()) { alert("No transcript captured."); return; }
+  const subjectName = document.getElementById('subjectInput')?.value || "";
+
+  trialCount++;
+  navigate('processing');
+  const mLabel = currentMode === 'business' ? 'BusinessIQ' : 'DateIQ';
+  document.getElementById('processingEmoji').textContent = currentMode === 'business' ? '💼' : '💘';
+  document.getElementById('processingSub').textContent = `${currentContext}${subjectName ? ' with ' + subjectName : ''} — ${formatTimeFn(recordingTime)} recorded`;
+
+  const steps = currentMode === 'business'
+    ? ["Transcribing audio...","Analyzing buyer signals...","Scanning risk indicators...","Evaluating personality traits...","Extracting prospect intelligence...","Generating BusinessIQ report..."]
+    : ["Transcribing audio...","Scanning red flags...","Evaluating green flags...","Scoring polar traits...","Extracting interests & insights...","Generating DateIQ report..."];
+
+  const stepsEl = document.getElementById('stepsList');
+  stepsEl.innerHTML = steps.map((s,i) => `<div class="step" id="step${i}"><div class="step-icon">⬜</div><div class="step-text">${s}</div></div>`).join('');
+
+  let step = 0;
+  const si = setInterval(() => {
+    if (step > 0) { document.getElementById('step'+(step-1)).querySelector('.step-icon').textContent = '✅'; }
+    if (step < steps.length) {
+      const el = document.getElementById('step'+step);
+      el.classList.add('active');
+      el.querySelector('.step-icon').textContent = '⏳';
+    }
+    step++;
+    if (step > steps.length) clearInterval(si);
+  }, 1200);
+
+  try {
+    // Build mock report for demo (API call would go here)
+    await new Promise(r => setTimeout(r, steps.length * 1200 + 500));
+    clearInterval(si);
+
+    // For demo, generate mock scores
+    currentReport = generateMockReport(transcript, subjectName);
+    renderReport();
+    if (confirm("By viewing these results, you agree to abide by all local laws regarding data privacy and recording privacy. Do you agree?")) {
+      navigate('report');
+    } else {
+      navigate('modeSelect');
+    }
+  } catch(e) {
+    clearInterval(si);
+    alert("Analysis error: " + e.message);
+    navigate('recording');
+  }
+}
+
+function generateMockReport(transcript, subjectName) {
+  const cats = currentMode === 'business' ? ['buyer','risk','polar','balance'] : ['negative','positive','polar','balance'];
+  const catDefs = currentMode === 'business' ? BIZ_CATEGORIES : DATE_CATEGORIES;
+  const traits = [];
+
+  // Generate realistic mock scores
+  const mockTraits = currentMode === 'business' ? [
+    {key:"comfortableBuying",label:"Comfortable Buying",category:"buyer"},{key:"budgetFlexibility",label:"Budget Flexibility",category:"buyer"},
+    {key:"decisionAuthority",label:"Decision Authority",category:"buyer"},{key:"urgency",label:"Urgency",category:"buyer"},
+    {key:"enthusiasm",label:"Enthusiasm",category:"buyer"},{key:"trustLevel",label:"Trust Level",category:"buyer"},
+    {key:"engagement",label:"Engagement",category:"buyer"},{key:"visionAlignment",label:"Vision Alignment",category:"buyer"},
+    {key:"championPotential",label:"Champion Potential",category:"buyer"},{key:"followThroughIntent",label:"Follow-Through Intent",category:"buyer"},
+    {key:"priceSensitivity",label:"Price Sensitivity",category:"risk"},{key:"indecisiveness",label:"Indecisiveness",category:"risk"},
+    {key:"skepticism",label:"Skepticism",category:"risk"},{key:"defensiveness",label:"Defensiveness",category:"risk"},
+    {key:"distraction",label:"Distraction",category:"risk"},{key:"competitorLoyalty",label:"Competitor Loyalty",category:"risk"},
+    {key:"gatekeeping",label:"Gatekeeping",category:"risk"},{key:"objectionStacking",label:"Objection Stacking",category:"risk"},
+    {key:"stallingTactics",label:"Stalling Tactics",category:"risk"},{key:"dishonesty_biz",label:"Dishonesty",category:"risk"},
+    {key:"agreeablePolar",label:"Agreeableness",category:"polar",idealLabel:"Agreeable",worstLabel:"Disagreeable"},
+    {key:"transparencyPolar",label:"Transparency",category:"polar",idealLabel:"Transparent",worstLabel:"Evasive"},
+    {key:"respectPolar",label:"Respect",category:"polar",idealLabel:"Respectful",worstLabel:"Dismissive"},
+    {key:"collaborationPolar",label:"Collaboration",category:"polar",idealLabel:"Collaborative",worstLabel:"Adversarial"},
+    {key:"decisivenessPolar",label:"Decisiveness",category:"polar",idealLabel:"Decisive",worstLabel:"Wishy-washy"},
+    {key:"responsivenessPolar",label:"Responsiveness",category:"polar",idealLabel:"Responsive",worstLabel:"Unresponsive"},
+    {key:"detailOrientedPolar",label:"Detail Orientation",category:"polar",idealLabel:"Detail-Oriented",worstLabel:"Careless"},
+    {key:"openMindedPolar",label:"Open-Mindedness",category:"polar",idealLabel:"Open-Minded",worstLabel:"Closed-Minded"},
+    {key:"professionalismPolar",label:"Professionalism",category:"polar",idealLabel:"Professional",worstLabel:"Unprofessional"},
+    {key:"reliabilityPolar",label:"Reliability",category:"polar",idealLabel:"Reliable",worstLabel:"Flaky"},
+    {key:"solutionFocusPolar",label:"Solution Focus",category:"polar",idealLabel:"Solution-Focused",worstLabel:"Problem-Focused"},
+    {key:"assertivenessBalance_biz",label:"Assertiveness",category:"balance",lowLabel:"Passive",midLabel:"Assertive",highLabel:"Aggressive"},
+    {key:"formalityBalance",label:"Formality",category:"balance",lowLabel:"Too Casual",midLabel:"Professional",highLabel:"Rigid"},
+    {key:"detailFocusBalance",label:"Detail Focus",category:"balance",lowLabel:"Vague",midLabel:"Thorough",highLabel:"Overthinking"},
+    {key:"emotionalInvestment",label:"Emotional Investment",category:"balance",lowLabel:"Detached",midLabel:"Engaged",highLabel:"Emotional"},
+    {key:"negotiationStyle",label:"Negotiation Style",category:"balance",lowLabel:"Pushover",midLabel:"Fair Negotiator",highLabel:"Hardball"},
+    ] : [
+    {key:"narcissism",label:"Narcissism",category:"negative"},{key:"manipulativeness",label:"Manipulativeness",category:"negative"},
+    {key:"dishonesty",label:"Dishonesty",category:"negative"},{key:"arrogance",label:"Arrogance",category:"negative"},
+    {key:"jealousy",label:"Jealousy",category:"negative"},{key:"controllingBehavior",label:"Controlling Behavior",category:"negative"},
+    {key:"impulsiveness",label:"Impulsiveness",category:"negative"},{key:"pessimism",label:"Pessimism",category:"negative"},
+    {key:"selfishness",label:"Selfishness",category:"negative"},{key:"rudeness",label:"Rudeness",category:"negative"},
+    {key:"altruism",label:"Altruism",category:"positive"},{key:"authenticity",label:"Authenticity",category:"positive"},
+    {key:"confidence",label:"Confidence",category:"positive"},{key:"compassion",label:"Compassion",category:"positive"},
+    {key:"competence",label:"Competence",category:"positive"},{key:"humor",label:"Humor",category:"positive"},
+    {key:"openMindedness",label:"Open-Mindedness",category:"positive"},{key:"reliability",label:"Reliability",category:"positive"},
+    {key:"respectfulness",label:"Respectfulness",category:"positive"},{key:"empathy",label:"Empathy",category:"positive"},
+    {key:"honestyPolar",label:"Honesty",category:"polar",idealLabel:"Honesty",worstLabel:"Dishonesty"},
+    {key:"loyaltyPolar",label:"Loyalty",category:"polar",idealLabel:"Loyalty",worstLabel:"Disloyalty"},
+    {key:"generosityPolar",label:"Generosity",category:"polar",idealLabel:"Generosity",worstLabel:"Stinginess"},
+    {key:"patiencePolar",label:"Patience",category:"polar",idealLabel:"Patience",worstLabel:"Impatience"},
+    {key:"kindnessPolar",label:"Kindness",category:"polar",idealLabel:"Kindness",worstLabel:"Cruelty"},
+    {key:"integrityPolar",label:"Integrity",category:"polar",idealLabel:"Integrity",worstLabel:"Deceitfulness"},
+    {key:"forgivenessPolar",label:"Forgiveness",category:"polar",idealLabel:"Forgiveness",worstLabel:"Vindictiveness"},
+    {key:"gratitudePolar",label:"Gratitude",category:"polar",idealLabel:"Gratitude",worstLabel:"Entitlement"},
+    {key:"selflessnessPolar",label:"Selflessness",category:"polar",idealLabel:"Selflessness",worstLabel:"Self-centeredness"},
+    {key:"competencePolar",label:"Competence",category:"polar",idealLabel:"Competence",worstLabel:"Incompetence"},
+    {key:"teamPlayerPolar",label:"Team Player",category:"polar",idealLabel:"Team Player",worstLabel:"Jealousy"},
+    {key:"selfWorthBalance",label:"Self-Worth",category:"balance",lowLabel:"No Balls",midLabel:"Confident",highLabel:"Narcissist"},
+    {key:"independenceBalance",label:"Independence",category:"balance",lowLabel:"Clingy",midLabel:"Balanced Autonomy",highLabel:"Emotionally Distant"},
+    {key:"expressivenessBalance",label:"Expressiveness",category:"balance",lowLabel:"Repressed",midLabel:"Balanced Openness",highLabel:"Unhinged"},
+    {key:"assertivenessBalance",label:"Assertiveness",category:"balance",lowLabel:"Passive",midLabel:"Balanced Communication",highLabel:"Aggressive"},
+    {key:"influenceBalance",label:"Influence",category:"balance",lowLabel:"Pushover",midLabel:"Influential",highLabel:"Manipulative"},
+    {key:"leadershipBalance",label:"Leadership",category:"balance",lowLabel:"Careless",midLabel:"Protective",highLabel:"Controlling"},
+  ];
+
+  mockTraits.forEach(t => {
+    let score;
+    if (t.category === 'balance') score = 30 + Math.floor(Math.random() * 40);
+    else if (t.category === 'negative' || t.category === 'risk') score = 10 + Math.floor(Math.random() * 45);
+    else score = 45 + Math.floor(Math.random() * 45);
+    const zones = catDefs[t.category].zones;
+    let scoreColor = 'orange', scoreLabel = '';
+    for (const z of zones) { if (score >= z.min && score <= z.max) { scoreColor = z.c; scoreLabel = z.l; break; } }
+    traits.push({...t, score, scoreColor, scoreLabel, notes: "Based on transcript analysis, this score reflects observable patterns in the conversation."});
+  });
+
+  const overall = Math.round(traits.reduce((a,t) => a + t.score, 0) / traits.length);
+
+  const interests = currentMode === 'business'
+    ? { likes: ["Premium features","Fast deployment","Enterprise support"], dislikes: ["Long contracts","Hidden fees"], mentions: ["Salesforce","Slack integration","Q2 deadline"], keyInsights: ["Budget approved for Q2","Decision maker present","Competitor comparison in progress"] }
+    : { likes: ["Hiking","Italian food","Golden Retrievers","Travel"], dislikes: ["Loud clubs","Smoking"], mentions: ["Trip to Italy","Sister's wedding in June","Yoga class"], keyInsights: ["Loves outdoor activities — suggest a hiking date","Mentioned wanting to try that new Italian place downtown"] };
+
+  return {
+    overallScore: overall,
+    summary: currentMode === 'business'
+      ? `${subjectName||'The prospect'} shows moderate buying signals with strong engagement. Watch for price sensitivity — consider emphasizing ROI over features.`
+      : `${subjectName||'This person'} demonstrates strong positive traits including authenticity and humor. Some moderate caution around independence balance — they may need reassurance without clinginess.`,
+    traits, interests, mode: currentMode, context: currentContext, subjectName,
+    date: new Date().toISOString().split('T')[0],
+    ...(currentMode === 'business' ? {
+      dealStage: "qualifying",
+      nextSteps: ["Send ROI comparison document","Schedule follow-up demo with their team lead","Address pricing concerns with value proposition"],
+      objections: ["Concerned about migration complexity","Current contract runs through Q3","Needs buy-in from CTO"],
+    } : {}),
+  };
+}
+
+// ── Report Rendering ──
+function renderReport() {
+  const r = currentReport;
+  if (!r) return;
+  const isBiz = r.mode === 'business';
+  const cats = isBiz ? ['buyer','risk','polar','balance'] : ['negative','positive','polar','balance'];
+  const catDefs = isBiz ? BIZ_CATEGORIES : DATE_CATEGORIES;
+  const mIcon = isBiz ? '💼' : '💘';
+  const mLabel = isBiz ? 'BusinessIQ' : 'DateIQ';
+  const accentClass = isBiz ? 'biz-mode' : 'date-mode';
+
+  const container = document.getElementById('reportContent');
+  container.parentElement.className = `screen active ${accentClass}`;
+
+  let html = `
+    <div class="report-header">
+      <button class="back-btn" onclick="newRecording()">← New</button>
+      <div class="report-mode"><span>${mIcon}</span> <span class="label">${mLabel} Report</span></div>
+      <div style="width:48px"></div>
+    </div>
+    <div class="score-card">
+      ${r.subjectName ? `<div class="subject-name">${r.subjectName}</div>` : ''}
+      <div class="score-context">${r.context} — ${r.date}</div>
+      <div class="radial-wrap">${buildRadial(r.overallScore, 110)}</div>
+      <div class="score-summary">"${r.summary}"</div>
+      <div class="score-stats">
+        <div class="stat"><div class="stat-num">37</div><div class="stat-label">Traits</div></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><div class="stat-num">4</div><div class="stat-label">Categories</div></div>
+        ${r.interests ? `<div class="stat-sep"></div><div class="stat"><div class="stat-num">${(r.interests.likes?.length||0)+(r.interests.dislikes?.length||0)}</div><div class="stat-label">Interests</div></div>` : ''}
+      </div>
+    </div>
+    <div class="report-tabs">
+      <div class="report-tab active" onclick="switchReportTab(this,'traits')">Traits</div>
+      <div class="report-tab" onclick="switchReportTab(this,'interests')">Notes</div>
+      ${isBiz ? `<div class="report-tab" onclick="switchReportTab(this,'deal')">Deal Intel</div>` : ''}
+    </div>
+    <div id="reportTraits">${buildTraitsHTML(r, cats, catDefs)}</div>
+    <div id="reportInterests" style="display:none">${buildInterestsHTML(r)}</div>
+    ${isBiz ? `<div id="reportDeal" style="display:none">${buildDealHTML(r)}</div>` : ''}
+    <div class="footer-legal">Results do not constitute medical, psychological, or professional advice.<br>10% of purchases donated to Liberating Humanity.</div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function switchReportTab(el, tab) {
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['reportTraits','reportInterests','reportDeal'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.style.display = 'none';
+  });
+  const target = document.getElementById('report' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (target) target.style.display = 'block';
+}
+
+function buildRadial(score, size) {
+  const r = size/2-8, circ = 2*Math.PI*r, dash = circ*(score/100);
+  const color = score>=66?'var(--green)':score>=33?'var(--orange)':'var(--red)';
+  return `<div style="position:relative;width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="6"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <span style="font-family:var(--font-display);font-size:${size*.28}px;color:${color};font-weight:700;line-height:1">${score}</span>
+      <span style="font-size:${size*.12}px;color:var(--text2)">/100</span>
+    </div>
+  </div>`;
+}
+
+function getColor(c) { return c==='green'?'var(--green)':c==='red'?'var(--red)':'var(--orange)'; }
+
+function buildTraitsHTML(r, cats, catDefs) {
+  let html = '';
+  cats.forEach(cat => {
+    const info = catDefs[cat];
+    const traits = r.traits.filter(t => t.category === cat);
+    const catId = 'cat-' + cat;
+    html += `<div class="cat-header">
+      <div class="cat-header-bar" onclick="toggleCat('${catId}')">
+        <div class="cat-left"><span class="cat-icon">${info.icon}</span><div><div class="cat-label">${info.label}</div><div class="cat-tagline">${info.tagline}</div></div></div>
+        <span class="cat-chevron" id="chev-${catId}">▼</span>
+      </div>
+      <div class="cat-desc" id="desc-${catId}">${info.description}</div>
+    </div>`;
+
+    traits.forEach(t => {
+      const color = getColor(t.scoreColor);
+      let meter = '';
+      if (t.category==='negative'||t.category==='positive'||t.category==='buyer'||t.category==='risk') {
+        meter = `<div class="bar"><div class="bar-fill" style="width:${t.score}%;background:${color}"></div></div>`;
+      } else if (t.category==='polar') {
+        meter = `<div class="meter meter-polar"><div class="meter-dot" style="left:${t.score}%;border-color:${color}"></div></div>
+          <div class="meter-labels"><span>${t.worstLabel||''}</span><span>${t.idealLabel||''}</span></div>`;
+      } else if (t.category==='balance') {
+        meter = `<div class="meter meter-balance"><div class="meter-dot" style="left:${t.score}%;border-color:${color}"></div></div>
+          <div class="meter-labels"><span>${t.lowLabel||''} (0)</span><span class="mid">${t.midLabel||''}</span><span>${t.highLabel||''} (100)</span></div>`;
+      }
+
+      html += `<div class="trait-card" onclick="this.classList.toggle('expanded')">
+        <div class="trait-top">
+          <div class="trait-info"><div class="trait-name-row"><span class="trait-name">${t.label}</span><span class="tag tag-${t.scoreColor}">${t.scoreLabel}</span></div></div>
+          <div class="trait-score"><span class="trait-score-num" style="color:${color}">${t.score}</span><span class="trait-score-max">/100</span></div>
+        </div>
+        ${meter}
+        <div class="trait-notes">"${t.notes}"</div>
+      </div>`;
+    });
+  });
+  return html;
+}
+
+function buildInterestsHTML(r) {
+  if (!r.interests) return '<div style="text-align:center;color:var(--text2);padding:40px 0">No interest data available</div>';
+  const isBiz = r.mode === 'business';
+  const sections = [
+    {key:'likes',icon:'👍',label:isBiz?'Interested In':'Things They Like',color:'var(--green)'},
+    {key:'dislikes',icon:'👎',label:isBiz?'Concerns / Dislikes':'Things They Dislike',color:'var(--red)'},
+    {key:'mentions',icon:'📌',label:'Notable Mentions',color:'var(--blue)'},
+    {key:'keyInsights',icon:'💡',label:isBiz?'Sales Insights':'Key Insights',color:'var(--orange)'},
+  ];
+  let html = `<div class="interests-panel"><div class="interests-title">${isBiz?'📋 Prospect Intelligence':'📝 Interest Notes'}</div>`;
+  sections.forEach(s => {
+    const items = r.interests[s.key];
+    if (!items || !items.length) return;
+    html += `<div class="interest-section"><div class="interest-header"><span class="icon">${s.icon}</span><span class="label" style="color:${s.color}">${s.label}</span></div><div class="interest-tags">`;
+    items.forEach(item => {
+      html += `<span class="interest-tag" style="background:${s.color}15;border:1px solid ${s.color}30;color:${s.color}">${item}</span>`;
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function buildDealHTML(r) {
+  if (!r.dealStage && !r.nextSteps && !r.objections) return '';
+  let html = '<div class="deal-panel"><div class="deal-title">📊 Deal Intelligence</div>';
+  if (r.dealStage) html += `<div class="deal-section"><div class="deal-label">Deal Stage</div><div class="deal-stage-badge">${r.dealStage}</div></div>`;
+  if (r.nextSteps?.length) {
+    html += '<div class="deal-section"><div class="deal-label">Recommended Next Steps</div>';
+    r.nextSteps.forEach(s => html += `<div class="deal-item"><span class="arrow" style="color:var(--green)">→</span><span class="text">${s}</span></div>`);
+    html += '</div>';
+  }
+  if (r.objections?.length) {
+    html += '<div class="deal-section"><div class="deal-label">Objections Raised</div>';
+    r.objections.forEach(o => html += `<div class="deal-item"><span class="arrow" style="color:var(--orange)">⚡</span><span class="text">${o}</span></div>`);
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function toggleCat(catId) {
+  const d = document.getElementById('desc-'+catId);
+  const ch = document.getElementById('chev-'+catId);
+  if (d && ch) { d.classList.toggle('open'); ch.classList.toggle('open'); }
+}
+
+function newRecording() {
+  currentReport = null;
+  recordingTime = 0;
+  liveTranscript = "";
+  document.getElementById('subjectInput').value = '';
+  document.getElementById('transcriptText').textContent = '';
+  document.getElementById('transcriptBox').style.display = 'none';
+  document.getElementById('pasteArea').style.display = 'block';
+  document.getElementById('pasteTranscript').value = '';
+  document.getElementById('analyzeBtn').style.display = 'none';
+  document.getElementById('timer').style.display = 'none';
+  document.getElementById('timer').textContent = '00:00';
+  document.getElementById('recordStatus').textContent = 'Tap to begin recording';
+  document.getElementById('recordStatus').style.color = 'var(--text2)';
+  navigate('modeSelect');
+}
+
+// ── Auth ──
+let authModeState = 'signup';
+function switchAuth(mode) {
+  authModeState = mode;
+  document.getElementById('tabSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('tabSignin').classList.toggle('active', mode === 'signin');
+  document.getElementById('signupFields').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('signinFields').style.display = mode === 'signin' ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = mode === 'signup' ? 'Create Account' : 'Sign In';
+  document.getElementById('authTitle').textContent = mode === 'signup' ? 'Create Your Account' : 'Welcome Back';
+  document.getElementById('authSubtitle').textContent = mode === 'signup' ? 'Get 5 free credits when you sign up' : 'Sign in to access your reports';
+  document.getElementById('authError').classList.remove('show');
+}
+
+async function handleAuth() {
+  const errorEl = document.getElementById('authError');
+  errorEl.classList.remove('show');
+  try {
+    if (authModeState === 'signup') {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const confirm = document.getElementById('authConfirm').value;
+      const name = document.getElementById('authName').value;
+      if (!name.trim()) throw new Error("Please enter your name.");
+      if (!email.trim()) throw new Error("Please enter your email.");
+      if (password.length < 6) throw new Error("Password must be at least 6 characters.");
+      if (password !== confirm) throw new Error("Passwords do not match.");
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      await cred.user.updateProfile({displayName: name});
+      currentUser = {uid:cred.user.uid, email, displayName:name};
+      navigate('modeSelect');
+    } else {
+      const email = document.getElementById('authEmailIn').value;
+      const password = document.getElementById('authPasswordIn').value;
+      if (!email.trim() || !password) throw new Error("Enter email and password.");
+      const cred = await auth.signInWithEmailAndPassword(email, password);
+      currentUser = {uid:cred.user.uid, email, displayName:cred.user.displayName||email.split('@')[0]};
+      navigate('modeSelect');
+    }
+  } catch(e) {
+    errorEl.textContent = e.message;
+    errorEl.classList.add('show');
+  }
+}
+
+// ── Init ──
+auth.onAuthStateChanged(async(user) => {
+  if (user) {
+    currentUser = {uid:user.uid, email:user.email, displayName:user.displayName||user.email.split('@')[0]};
+    const active = document.querySelector('.screen.active');
+    if (active && (active.id==='splash'||active.id==='disclaimers'||active.id==='onboard')) {
+      navigate('modeSelect');
+    }
+  }
+});
+
+setTimeout(() => {
+  const active = document.querySelector('.screen.active');
+  if (active && active.id === 'splash') {
+    navigate(currentUser ? 'modeSelect' : 'disclaimers');
+  }
+}, 2500);
+</script>
+</body>
+</html>
