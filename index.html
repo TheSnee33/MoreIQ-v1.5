@@ -637,15 +637,7 @@ function verifyConsentAndRecord() {
     return;
   }
   
-  if (inAllPartyState && window.speechSynthesis) {
-    const u = new SpeechSynthesisUtterance("Recording started. Please ensure all parties consent.");
-    u.volume = 0.5; u.rate = 1.0;
-    window.speechSynthesis.speak(u);
-    // Wait for synth to finish before starting rec
-    u.onend = startRec;
-  } else {
-    startRec();
-  }
+  startRec();
 }
 
 function startRec() {
