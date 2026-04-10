@@ -501,6 +501,9 @@ let currentMode = null; // "date" | "business"
 let currentContext = "";
 let isRecording = false;
 let recordingTime = 0;
+let sessionMediaRecorder;
+let sessionChunks = [];
+let sessionAudioBlob = null;
 let timerInterval = null;
 let trialCount = 0;
 const MAX_TRIALS = 2;
@@ -637,6 +640,16 @@ function verifyConsentAndRecord() {
 function startRec() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Speech recognition not supported. Use Chrome."); return; }
+  
+  sessionAudioBlob = null;
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    sessionMediaRecorder = new MediaRecorder(stream);
+    sessionChunks = [];
+    sessionMediaRecorder.ondataavailable = e => sessionChunks.push(e.data);
+    sessionMediaRecorder.onstop = () => { sessionAudioBlob = new Blob(sessionChunks, { type: 'audio/webm' }); };
+    sessionMediaRecorder.start();
+  }).catch(e => console.error("Mic error", e));
+
   liveTranscript = "";
   recognition = new SR();
   recognition.continuous = true;
@@ -652,6 +665,7 @@ function startRec() {
     if (f) {
       document.getElementById('transcriptBox').style.display = 'block';
       document.getElementById('pasteArea').style.display = 'none';
+      showAnalyzeBtn();
     }
   };
   recognition.start();
@@ -672,6 +686,9 @@ function startRec() {
 
 function stopRec() {
   if (recognition) recognition.stop();
+  if (sessionMediaRecorder && sessionMediaRecorder.state === 'recording') {
+    sessionMediaRecorder.stop();
+  }
   isRecording = false;
   clearInterval(timerInterval);
   document.getElementById('recordWrap').parentElement.parentElement.classList.remove('recording-active');
@@ -700,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Analysis ──
 async function startAnalysis() {
+  if (isRecording) { stopRec(); }
   const transcript = liveTranscript || document.getElementById('pasteTranscript')?.value || "";
   if (!transcript.trim()) { alert("No transcript captured."); return; }
   const subjectName = document.getElementById('subjectInput')?.value || "";
@@ -733,6 +751,23 @@ async function startAnalysis() {
     // Build mock report for demo (API call would go here)
     await new Promise(r => setTimeout(r, steps.length * 1200 + 500));
     clearInterval(si);
+    if (currentUser && currentUser.data) {
+       let audioUrl = "";
+       try {
+           if (sessionAudioBlob) {
+               const audioRef = firebase.storage().ref(`sessions/${currentUser.uid}/audio_${Date.now()}.webm`);
+               await audioRef.put(sessionAudioBlob);
+               audioUrl = await audioRef.getDownloadURL();
+           }
+           await db.collection('users').doc(currentUser.uid).collection('sessions').add({
+               transcript: transcript,
+               subjectName: subjectName,
+               timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+               audioUrl: audioUrl,
+               mode: currentMode
+           });
+       } catch(e) { console.error("Firebase upload error:", e); }
+    }
 
     // For demo, generate mock scores
     currentReport = generateMockReport(transcript, subjectName);
