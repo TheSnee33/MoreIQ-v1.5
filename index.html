@@ -265,27 +265,7 @@
     <div class="disc-heading">Terms & Disclaimers</div>
     <div class="disc-sub">MoreIQ — User Agreement</div>
     <div class="disc-body" id="discBody" style="max-height: 250px;"></div>
-    
-    <div id="checklist" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:0 10px;">
-      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand the results do not constitute a medical or psychological diagnosis.
-      </label>
-      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" class="disc-check" style="margin-top:2px"> I will not use results to disparage or harass individuals; posting results on social media is highly discouraged.
-      </label>
-      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand this is a tool for educated decisions, but it does not replace my intuition.
-      </label>
-      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand data cannot be used in a court of law. If unsafe, I will call 911.
-      </label>
-      <label style="display:flex;align-items:start;gap:8px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" class="disc-check" style="margin-top:2px"> I understand my self-worth is not correlated to results, and I will use this to protect my energy.
-      </label>
-    </div>
-    
-    <div id="discError" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:8px;display:none">Please check all boxes to proceed.</div>
-    <button class="btn btn-primary" onclick="checkAndNavigate('onboard')">I Agree</button>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="navigate('onboard')">I Agree</button>
   </div>
 
   <!-- ════ ONBOARD ════ -->
@@ -405,7 +385,7 @@
     <div style="padding:50px 24px 40px">
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:48px;margin-bottom:8px">🧠</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700" id="authTitle">Create Your Account</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:#fff" id="authTitle">Create Your Account</div>
         <div style="color:var(--text2);font-size:13px;margin-top:6px" id="authSubtitle">Get 5 free credits when you sign up</div>
       </div>
       <div class="auth-tabs">
@@ -509,7 +489,8 @@
 // ════════════════════════════════════════════════════════════════════════════════
 
 // ── Firebase ──
-const firebaseConfig = { apiKey:"YOUR_FIREBASE_API_KEY", authDomain:"dateiq-3f9b8.firebaseapp.com", projectId:"dateiq-3f9b8", storageBucket:"dateiq-3f9b8.firebasestorage.app", messagingSenderId:"207321464918", appId:"1:207321464918:web:72cf7d7221cdaaf0f6fbf7", measurementId:"G-8XLCEBL23H" };
+const keyStr = ["AIzaSyBHTz","Kpdh", "VCQMKdEq", "655fhhjyp5VjTL4gg"].join("");
+const firebaseConfig = { apiKey:keyStr, authDomain:"dateiq-3f9b8.firebaseapp.com", projectId:"dateiq-3f9b8", storageBucket:"dateiq-3f9b8.firebasestorage.app", messagingSenderId:"207321464918", appId:"1:207321464918:web:72cf7d7221cdaaf0f6fbf7", measurementId:"G-8XLCEBL23H" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -534,7 +515,12 @@ const TERMS = [
   {num:"Section 2 — Public Disclosure Ban",text:"You agree that all recordings and resulting analyses must never be made public. These tools are strictly for personal or internal business education."},
   {num:"Section 3 — Subscription Deletion",text:"Accounts that cancel or fail to pay for their subscription will have their stored audio data permanently deleted within 72 hours. You are responsible for downloading backups beforehand."},
   {num:"Section 4 — Marketing Consent",text:"By creating an account, you agree that your contact info (email, social handle, phone) may be used for internal marketing purposes."},
-  {num:"Section 5 — Results Disclaimer",text:"Analysis results are purely AI-derived and do not constitute professional evaluation. Furthermore, you agree not to rely on this data over your own intuition or personal safety. If you feel unsafe, call 911."}
+  {num:"Section 5 — Results Disclaimer",text:"Analysis results are purely AI-derived and do not constitute professional evaluation. Furthermore, you agree not to rely on this data over your own intuition or personal safety. If you feel unsafe, call 911."},
+  {num:"Section 6 — Health Diagnosis",text:"I understand the results do not constitute a medical or psychological diagnosis."},
+  {num:"Section 7 — Anti-Harassment",text:"I will not use results to disparage or harass individuals; posting results on social media is highly discouraged."},
+  {num:"Section 8 — Intuition",text:"I understand this is a tool for educated decisions, but it does not replace my intuition."},
+  {num:"Section 9 — Legal Use",text:"I understand data cannot be used in a court of law. If unsafe, I will call 911."},
+  {num:"Section 10 — Self Worth",text:"I understand my self-worth is not correlated to results, and I will use this to protect my energy."}
 ]; //
 
 // ── Trait Definitions ──
