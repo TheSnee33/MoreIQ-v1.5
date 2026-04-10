@@ -438,12 +438,7 @@
       </div>
 
       <div class="record-area" id="recordArea">
-        <div id="geoWarning" style="display:none;width:100%;margin-bottom:16px;background:rgba(245,158,11,0.1);border:1px solid var(--orange);border-radius:10px;padding:12px">
-           <div style="color:var(--orange);font-size:12px;font-weight:700;margin-bottom:4px">⚠️ ALL-PARTY CONSENT STATE</div>
-           <label style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--text2);cursor:pointer">
-             <input type="checkbox" id="geoConsentCheck" style="margin-top:2px"> I confirm that all parties present have consented to being recorded.
-           </label>
-        </div>
+
         <div class="record-wrap" id="recordWrap">
           <div class="ripple"></div><div class="ripple"></div><div class="ripple"></div>
           <button id="recordBtn" onclick="verifyConsentAndRecord()">🎙️</button>
@@ -612,28 +607,13 @@ function checkAndNavigate(tgt) {
 }
 
 const ALL_PARTY_STATES = ["California", "Connecticut", "Florida", "Illinois", "Maryland", "Massachusetts", "Montana", "New Hampshire", "Pennsylvania", "Washington"];
-let inAllPartyState = false;
-
-// Mock geo check for demo
-navigator.geolocation.getCurrentPosition((pos) => {
-  // In production, reverse geocode pos.coords to check state
-  // For demo, we randomly toggle or simulate California
-  inAllPartyState = true; 
-  if (inAllPartyState) {
-    document.getElementById('geoWarning').style.display = 'block';
-  }
-});
+// Geo check removed as requested
 
 function verifyConsentAndRecord() {
   if (isRecording) {
     stopRec();
     return;
   }
-  if (inAllPartyState && !document.getElementById('geoConsentCheck').checked) {
-    alert("You are in a two-party/all-party consent state. You must check the consent box to record.");
-    return;
-  }
-  
   startRec();
 }
 
@@ -772,11 +752,7 @@ async function startAnalysis() {
     // For demo, generate mock scores
     currentReport = generateMockReport(transcript, subjectName);
     renderReport();
-    if (confirm("By viewing these results, you agree to abide by all local laws regarding data privacy and recording privacy. Do you agree?")) {
-      navigate('report');
-    } else {
-      navigate('modeSelect');
-    }
+    navigate('report');
   } catch(e) {
     clearInterval(si);
     alert("Analysis error: " + e.message);
