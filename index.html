@@ -1063,6 +1063,9 @@ function switchAuth(mode) {
 async function handleAuth() {
   const errorEl = document.getElementById('authError');
   errorEl.classList.remove('show');
+  const btn = document.getElementById('authSubmitBtn');
+  const oldBtnText = btn.textContent;
+  btn.textContent = 'Please wait...';
   try {
     if (authModeState === 'signup') {
       const email = document.getElementById('authEmail').value;
@@ -1079,6 +1082,7 @@ async function handleAuth() {
       await db.collection('users').doc(cred.user.uid).set(userData);
       currentUser = {uid:cred.user.uid, email, displayName:name, data: userData};
       localStorage.setItem('activeScreen', 'modeSelect');
+      btn.textContent = oldBtnText;
       navigate('modeSelect');
     } else {
       const email = document.getElementById('authEmailIn').value;
@@ -1087,10 +1091,13 @@ async function handleAuth() {
       const cred = await auth.signInWithEmailAndPassword(email, password);
       const docSnap = await db.collection('users').doc(cred.user.uid).get();
       currentUser = {uid:cred.user.uid, email, displayName:cred.user.displayName||email.split('@')[0], data: docSnap.data()};
-      const lastScreen = localStorage.getItem('activeScreen') || 'modeSelect';
+      let lastScreen = localStorage.getItem('activeScreen') || 'modeSelect';
+      if (lastScreen === 'auth' || lastScreen === 'splash') lastScreen = 'modeSelect';
+      btn.textContent = oldBtnText;
       navigate(lastScreen);
     }
   } catch(e) {
+    btn.textContent = oldBtnText;
     errorEl.textContent = e.message;
     errorEl.classList.add('show');
   }
