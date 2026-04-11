@@ -246,6 +246,7 @@
 <body>
 
 <div id="phone">
+<div id="globalHomeBtn" style="position:fixed;top:16px;left:16px;z-index:9999;font-size:24px;cursor:pointer;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:50%;width:44px;height:44px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.5)" onclick="navigate('modeSelect')">🏠</div>
 
   <!-- ════ SPLASH ════ -->
   <div id="splash" class="screen active">
@@ -510,6 +511,7 @@ const BIZ_CATEGORIES = {
 
 // ── Navigation ──
 function navigate(screenId) {
+  document.getElementById('globalHomeBtn').style.display = (screenId === 'splash' || screenId === 'onboard' || screenId === 'modeSelect') ? 'none' : 'flex';
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId)?.classList.add('active');
   if (screenId === 'disclaimers') buildTerms();
@@ -1128,13 +1130,15 @@ async function askAI() {
   }
 
   // Deduct credit
-  const newBalance = currentUser.data.credits.balance - 1;
-  const userRef = db.collection('users').doc(currentUser.uid);
-  try {
-    await userRef.update({ "credits.balance": newBalance });
-    currentUser.data.credits.balance = newBalance;
-  } catch(e) {
-    console.error(e);
+  if (currentUser) {
+    const newBalance = currentUser.data.credits.balance - 1;
+    const userRef = db.collection('users').doc(currentUser.uid);
+    try {
+      await userRef.update({ "credits.balance": newBalance });
+      currentUser.data.credits.balance = newBalance;
+    } catch(e) {
+      console.error(e);
+    }
   }
 
   // Render question
