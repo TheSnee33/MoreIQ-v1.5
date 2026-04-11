@@ -279,12 +279,7 @@
       <div class="feature-row"><div class="feature-icon">🎧</div><div><div class="feature-title">Live Coaching</div><div class="feature-desc">Whispered suggestions through your Bluetooth headset in real-time</div></div></div>
       <div class="feature-row"><div class="feature-icon">📝</div><div><div class="feature-title">Interest Tracking</div><div class="feature-desc">AI notes what they like, dislike, and mention — never forget a detail</div></div></div>
     </div>
-    <div class="trial-banner">
-      <div class="trial-banner-title">Try 2 recordings free — no account needed</div>
-      <div class="trial-banner-sub">Create an account to save results and earn credits</div>
-    </div>
-    <button class="btn btn-primary" onclick="navigate('modeSelect')" style="margin-bottom:10px">Get Started</button>
-    <button class="btn btn-outline" onclick="navigate('signup')">I already have an account</button>
+    <button class="btn btn-primary" onclick="navigate('modeSelect')" style="margin-top:20px;margin-bottom:10px">Get Started</button>
   </div>
 
   <!-- ════ MODE SELECT ════ -->
@@ -380,35 +375,7 @@
   </div>
 
 
-  <!-- ════ SIGNUP ════ -->
-  <div id="signup" class="screen">
-    <div style="padding:50px 24px 40px">
-      <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:48px;margin-bottom:8px">🧠</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:#fff" id="authTitle">Create Your Account</div>
-        <div style="color:var(--text2);font-size:13px;margin-top:6px" id="authSubtitle">Get 5 free credits when you sign up</div>
-      </div>
-      <div class="auth-tabs">
-        <div class="auth-tab active" id="tabSignup" onclick="switchAuth('signup')">Sign Up</div>
-        <div class="auth-tab" id="tabSignin" onclick="switchAuth('signin')">Sign In</div>
-      </div>
-      <div class="auth-error" id="authError"></div>
-      <div id="signupFields">
-        <div class="auth-field"><label class="auth-label">Full Name</label><input class="auth-input" id="authName" placeholder="Your name"></div>
-        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmail" type="email" placeholder="you@email.com"></div>
-        <div class="auth-field"><label class="auth-label">Phone Number</label><input class="auth-input" id="authPhone" type="tel" placeholder="(555) 555-5555"></div>
-        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPassword" type="password" placeholder="At least 6 characters"></div>
-        <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="authConfirm" type="password" placeholder="Re-enter password"></div>
-        <div class="auth-field"><label class="auth-label">Instagram Handle</label><input class="auth-input" id="authIG" placeholder="@yourhandle"></div>
-      </div>
-      <div id="signinFields" style="display:none">
-        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmailIn" type="email" placeholder="you@email.com"></div>
-        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPasswordIn" type="password" placeholder="Your password"></div>
-      </div>
-      <button class="btn btn-primary" id="authSubmitBtn" onclick="handleAuth()" style="margin-bottom:10px">Create Account</button>
-      <button class="btn btn-outline" id="skipAuthBtn" onclick="navigate('modeSelect')">Skip — 2 free trials left</button>
-    </div>
-  </div>
+
 
   <!-- ════ RECORDING ════ -->
   <div id="recording" class="screen date-mode">
@@ -1212,7 +1179,7 @@ auth.onAuthStateChanged(async(user) => {
 setTimeout(() => {
   const active = document.querySelector('.screen.active');
   if (active && active.id === 'splash') {
-    navigate(currentUser ? 'modeSelect' : 'disclaimers');
+    navigate('onboard');
   }
 }, 2500);
 </script>
