@@ -230,6 +230,21 @@
 
     .footer-legal{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:16px;font-size:11px;color:var(--text3);line-height:1.6}
 
+    /* Coach Chat UI */
+    .chat-box{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:300px;overflow-y:auto}
+    .chat-msg{font-size:13px;padding:10px 14px;border-radius:12px;line-height:1.5}
+    .chat-user{background:var(--bg);color:var(--text);align-self:flex-end;border:1px solid var(--border)}
+    .chat-ai{background:linear-gradient(135deg,rgba(124,58,237,0.1),transparent);border:1px solid var(--purple);color:var(--text);align-self:flex-start}
+    
+    /* Voice Training & Campaign UI */
+    .vt-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+    .slider-container{width:100%;height:4px;background:var(--border);border-radius:2px;position:relative;margin:20px 0}
+    .vt-handle{width:16px;height:16px;background:var(--purple);border-radius:50%;position:absolute;top:-6px;cursor:pointer}
+    .campaign-links textarea{width:100%;min-height:120px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:12px;resize:vertical}
+    
+    /* Radar Chart */
+    .radar-wrap{display:flex;justify-content:center;margin:16px 0;position:relative;background:var(--bg);border-radius:16px;padding:16px}
+
     /* Auth (reuse from DateIQ) */
     .auth-tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:3px;margin-bottom:18px}
     .auth-tab{flex:1;padding:10px;text-align:center;font-size:14px;font-weight:600;color:var(--text2);border-radius:6px;cursor:pointer}
@@ -254,9 +269,11 @@
     <div class="splash-logo">MoreIQ</div>
     <div class="splash-tagline">Know More. Win More.</div>
     <div class="splash-modes">
-      <span class="date" onclick="selectMode('date')" style="cursor:pointer">💘 DateIQ</span>
+      <span class="date" onclick="selectMode('date')" style="cursor:pointer">💘 Date</span>
       <span class="sep">|</span>
-      <span class="biz" onclick="selectMode('business')" style="cursor:pointer">💼 BusinessIQ</span>
+      <span class="biz" onclick="selectMode('business')" style="cursor:pointer">💼 Biz</span>
+      <span class="sep">|</span>
+      <span class="tagline" onclick="selectMode('campaign')" style="cursor:pointer;color:var(--teal)">📈 Viral</span>
     </div>
     <div style="color:var(--text3);font-size:11px;margin-top:16px;cursor:pointer;letter-spacing:1px" onclick="navigate('disclaimers')">TAP TO CONTINUE</div>
   </div>
@@ -311,6 +328,16 @@
           </div>
         </div>
       </div>
+      <div class="mode-card biz" onclick="selectMode('campaign')" style="border-color:var(--teal)">
+        <div class="stripe" style="background:linear-gradient(90deg,var(--teal),#5eead4)"></div>
+        <div class="mode-inner">
+          <div class="mode-emoji">📈</div>
+          <div>
+            <div class="mode-title" style="color:#5eead4">Campaign Analyzer</div>
+            <div class="mode-desc">Upload links of viral content in your niche to extract ideas, scripts, and editing notes.</div>
+          </div>
+        </div>
+      </div>
       <button class="btn btn-outline" style="margin-top:10px" onclick="navigate('subscription')">Credits & Subscriptions</button>
       <button class="btn btn-outline" style="margin-top:10px" onclick="navigate('voiceTraining')">Train Voice Profile 🎙️</button>
     </div>
@@ -360,29 +387,62 @@
 
   <!-- ════ VOICE TRAINING ════ -->
   <div id="voiceTraining" class="screen">
-    <div style="padding:50px 24px 40px;align-items:center">
-      <button class="back-btn" onclick="navigate('modeSelect')" style="margin-bottom:20px;width:100%;text-align:left">← Back</button>
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:40px;margin-bottom:8px">🎙️</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">Voice Recognition</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:8px">Allow AI to separate your voice from your prospect/date. Record 15 seconds of your baseline voice.</div>
+    <div style="padding:50px 24px 40px">
+      <button class="back-btn" onclick="navigate('modeSelect')">← Back</button>
+      <div style="text-align:center;margin-bottom:20px;margin-top:10px;">
+        <div style="font-size:40px;margin-bottom:10px">🎙️</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:700">Voice Profiler</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:6px">Select 30-60 seconds of their voice so the AI can isolate it.</div>
       </div>
-      
-      <div class="record-area">
-        <button id="trainRecordBtn" class="btn btn-outline" style="height:100px;width:100px;border-radius:50%;font-size:32px" onclick="startVoiceTraining(this)">🎙️</button>
-        <div style="font-size:12px;color:var(--text3);margin-top:12px">Tap to begin voice footprinting</div>
+      <div class="vt-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">UPLOAD RECORDING</div>
+        <button class="btn btn-outline" style="padding:12px;font-size:14px;margin-bottom:12px">Choose Audio File...</button>
+        <div style="height:60px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--purple-lt);font-size:10px;opacity:0.5;margin-bottom:12px;">[ Waveform Visualizer ]</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:600">ISOLATE TARGET PROFILE</div>
+        <div class="slider-container">
+          <div style="position:absolute;height:100%;background:var(--purple);left:20%;right:40%;border-radius:2px"></div>
+          <div class="vt-handle" style="left:20%"></div>
+          <div class="vt-handle" style="left:60%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
+          <span>0:00</span><span>0:45 selected</span><span>1:50</span>
+        </div>
       </div>
+      <button class="btn btn-primary" onclick="navigate('recording')">Confirm Voice Profile</button>
+      <button class="btn btn-outline" style="margin-top:10px;border:none;color:var(--text3)" onclick="navigate('recording')">Skip Training</button>
     </div>
   </div>
 
-
-
+  <!-- ════ CAMPAIGN ANALYZER ════ -->
+  <div id="campaignAnalyzer" class="screen biz-mode">
+    <div style="padding:50px 24px 40px">
+      <button class="back-btn" onclick="navigate('modeSelect')">← Back</button>
+      <div style="text-align:center;margin-bottom:20px;margin-top:10px;">
+        <div style="font-size:40px;margin-bottom:10px">📈</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:#5eead4">Campaign Analyzer</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:6px">Analyze up to 100 viral links for content strategy.</div>
+      </div>
+      <div class="vt-card campaign-links">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">PASTE VIRAL LINKS (1 per line)</div>
+        <textarea id="campaignLinks" placeholder="https://tiktok.com/...&#10;https://instagram.com/..."></textarea>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:8px">
+          <span id="linkCount">0 / 100 links</span>
+          <span style="color:var(--teal)">Costs 5 Credits</span>
+        </div>
+      </div>
+      <div class="vt-card campaign-links">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">UPLOAD TRASH/FAILED LINKS (Optional)</div>
+        <textarea id="failedLinks" placeholder="Links to standard content that failed to go viral..."></textarea>
+      </div>
+      <button class="btn" style="background:linear-gradient(135deg,var(--teal),#0d9488);color:#fff" onclick="startCampaignAnalysis()">Analyze Campaign</button>
+    </div>
+  </div>
 
   <!-- ════ RECORDING ════ -->
   <div id="recording" class="screen date-mode">
     <div style="padding:50px 24px 40px;display:flex;flex-direction:column;align-items:center">
       <div class="rec-header">
-        <button class="back-btn" onclick="navigate('modeSelect')">← Back</button>
+        <button class="back-btn" onclick="navigate('voiceTraining')">← Back</button>
         <div class="rec-mode-badge">
           <span id="recModeIcon">💘</span>
           <span class="label" id="recModeLabel">DateIQ</span>
@@ -393,6 +453,11 @@
       </div>
       <input class="subject-input" id="subjectInput" placeholder="Date's name (e.g. Jessica, Mike...)">
       <div class="context-tags" id="contextTags"></div>
+      
+      <div id="diaryArea" style="width:100%;margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600">YOUR GOALS / DIARY</div>
+        <textarea id="diaryInput" placeholder="I want to go to a beach cleanup..." style="width:100%;min-height:60px;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font-body);resize:vertical;box-sizing:border-box"></textarea>
+      </div>
 
       <div class="coaching-toggle" id="coachingToggle" onclick="toggleCoaching()">
         <div class="coaching-left">
@@ -532,6 +597,11 @@ function buildTerms() {
 // ── Mode Selection ──
 function selectMode(mode) {
   currentMode = mode;
+  if (mode === 'campaign') {
+    navigate('campaignAnalyzer');
+    return;
+  }
+  
   const rec = document.getElementById('recording');
   rec.className = `screen active ${mode==='business'?'biz-mode':'date-mode'}`;
   document.getElementById('recModeIcon').textContent = mode==='business'?'💼':'💘';
@@ -540,13 +610,45 @@ function selectMode(mode) {
   document.getElementById('analyzeBtn').className = `btn ${mode==='business'?'btn-biz':'btn-date'}`;
   document.getElementById('analyzeBtn').textContent = `Analyze 37 ${mode==='business'?'Business':'Dating'} Traits`;
 
+  const diaryArea = document.getElementById('diaryArea');
+  if (diaryArea) diaryArea.style.display = mode === 'date' ? 'block' : 'none';
+
   // Build context tags
   const contexts = mode==='business' ? BIZ_CONTEXTS : DATE_CONTEXTS;
   currentContext = contexts[0];
   const container = document.getElementById('contextTags');
   container.innerHTML = contexts.map(c => `<button class="ctx-tag${c===currentContext?' active':''}" onclick="selectContext(this,'${c}')">${c}</button>`).join('');
 
-  navigate('recording');
+  navigate('voiceTraining');
+}
+
+async function startCampaignAnalysis() {
+  currentMode = 'campaign';
+  document.getElementById('processingEmoji').textContent = '📈';
+  document.getElementById('processingSub').textContent = 'Analyzing viral triggers & content scripts...';
+  const steps = ["Parsing 100 links...","Analyzing hook structures...","Extracting editing styles...","Generating content scripts...","Finalizing Campaign Report..."];
+  const stepsEl = document.getElementById('stepsList');
+  stepsEl.innerHTML = steps.map((s,i) => `<div class="step" id="step${i}"><div class="step-icon">⬜</div><div class="step-text">${s}</div></div>`).join('');
+  
+  navigate('processing');
+  
+  let step = 0;
+  const si = setInterval(() => {
+    if (step > 0) { document.getElementById('step'+(step-1)).querySelector('.step-icon').textContent = '✅'; }
+    if (step < steps.length) {
+      const el = document.getElementById('step'+step);
+      el.classList.add('active');
+      el.querySelector('.step-icon').textContent = '⏳';
+    }
+    step++;
+    if (step > steps.length) {
+      clearInterval(si);
+      currentReport = generateMockReport("", "Campaign Analysis");
+      currentReport.isCampaign = true;
+      renderReport();
+      navigate('report');
+    }
+  }, 1200);
 }
 
 function selectContext(el, ctx) {
@@ -860,16 +962,29 @@ function renderReport() {
         ${r.interests ? `<div class="stat-sep"></div><div class="stat"><div class="stat-num">${(r.interests.likes?.length||0)+(r.interests.dislikes?.length||0)}</div><div class="stat-label">Interests</div></div>` : ''}
       </div>
     </div>
+    ${r.isCampaign ? buildCampaignHTML(r) : `
     <div class="report-tabs">
       <div class="report-tab active" onclick="switchReportTab(this,'traits')">Traits</div>
       <div class="report-tab" onclick="switchReportTab(this,'interests')">Notes</div>
       ${isBiz ? `<div class="report-tab" onclick="switchReportTab(this,'deal')">Deal Intel</div>` : ''}
+      <div class="report-tab" id="tabCoach" onclick="switchReportTab(this,'coach')">AI Coach</div>
     </div>
-    <div id="reportTraits">${buildTraitsHTML(r, cats, catDefs)}</div>
-    <div id="reportInterests" style="display:none">${buildInterestsHTML(r)}</div>
-    ${isBiz ? `<div id="reportDeal" style="display:none">${buildDealHTML(r)}</div>` : ''}
     
-    <div class="chat-container" style="margin-top:20px;background:var(--bg3);border-radius:var(--radius-sm);padding:16px;">
+    <div id="reportTraits">
+      <div class="radar-wrap">
+        ${buildRadarSVG(r.communicationStyles)}
+      </div>
+      ${buildTraitsHTML(r, cats, catDefs)}
+    </div>
+    <div id="reportInterests" style="display:none">
+      ${!isBiz ? buildAttachmentHTML(r) : ''}
+      ${buildInterestsHTML(r)}
+    </div>
+    ${isBiz ? `<div id="reportDeal" style="display:none">${buildDealHTML(r)}</div>` : ''}
+    <div id="reportCoach" style="display:none">${buildCoachHTML(r)}</div>
+    `}
+    
+    <div class="chat-container" style="margin-top:20px;background:var(--bg3);border-radius:var(--radius-sm);padding:16px;display:none;">
       <div style="font-weight:700;margin-bottom:8px">Ask the AI (1 Credit)</div>
       <div id="aiChatLog" style="max-height:200px;overflow-y:auto;margin-bottom:10px;font-size:14px;color:var(--text2)"></div>
       <div style="display:flex;gap:8px">
@@ -886,12 +1001,97 @@ function renderReport() {
 function switchReportTab(el, tab) {
   document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  ['reportTraits','reportInterests','reportDeal'].forEach(id => {
+  ['reportTraits','reportInterests','reportDeal','reportCoach'].forEach(id => {
     const e = document.getElementById(id);
     if (e) e.style.display = 'none';
   });
   const target = document.getElementById('report' + tab.charAt(0).toUpperCase() + tab.slice(1));
   if (target) target.style.display = 'block';
+}
+
+function buildCampaignHTML(r) {
+  return `<div class="vt-card" style="margin-top:20px;">
+    <div style="font-size:20px;font-weight:700;color:var(--teal);margin-bottom:12px">Viral Hooks Extracted</div>
+    <div class="deal-item"><span class="arrow" style="color:var(--teal)">→</span><span class="text">"You are doing [X] wrong" (Negative Framing)</span></div>
+    <div class="deal-item"><span class="arrow" style="color:var(--teal)">→</span><span class="text">High pace cuts first 3 seconds</span></div>
+    
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;margin-top:16px">Generated Content Scripts</div>
+    <div class="chat-msg chat-ai" style="margin-bottom:8px">Script 1: "Stop trying to learn CSS. Do this instead..." [Visual: Point to screen]</div>
+    <div class="chat-msg chat-ai" style="margin-bottom:8px">Script 2: "7 things I wish I knew before..." [Visual: Holding a coffee cup]</div>
+    
+    <div style="font-size:16px;font-weight:700;color:var(--orange);margin-bottom:8px;margin-top:16px">Trash Analysis</div>
+    <div style="font-size:13px;color:var(--text2)">Your failed links lacked early pacing and had weak storytelling structures compared to the top 100 benchmark.</div>
+  </div>`;
+}
+
+function buildRadarSVG(styles) {
+  if (!styles) return '';
+  return `
+    <div style="text-align:center;width:100%">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;font-family:var(--font-display);">Dominant Communication Styles</div>
+      <svg width="240" height="240" viewBox="-130 -130 260 260" style="overflow:visible">
+        <!-- Background Web -->
+        <polygon points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" fill="none" stroke="var(--border)" stroke-width="1"></polygon>
+        <polygon points="0,-75 64.95,-37.5 64.95,37.5 0,75 -64.95,37.5 -64.95,-37.5" fill="none" stroke="var(--border)" stroke-width="1"></polygon>
+        <polygon points="0,-50 43.3,-25 43.3,25 0,50 -43.3,25 -43.3,-25" fill="none" stroke="var(--border)" stroke-width="1"></polygon>
+        <!-- Axes -->
+        <line x1="0" y1="0" x2="0" y2="-100" stroke="var(--border)"/>
+        <line x1="0" y1="0" x2="86.6" y2="-50" stroke="var(--border)"/>
+        <line x1="0" y1="0" x2="86.6" y2="50" stroke="var(--border)"/>
+        <line x1="0" y1="0" x2="0" y2="100" stroke="var(--border)"/>
+        <line x1="0" y1="0" x2="-86.6" y2="50" stroke="var(--border)"/>
+        <line x1="0" y1="0" x2="-86.6" y2="-50" stroke="var(--border)"/>
+        <!-- Labels -->
+        <text x="0" y="-115" text-anchor="middle" font-size="11" fill="var(--text2)">Facts (${styles.facts})</text>
+        <text x="105" y="-55" text-anchor="start" font-size="11" fill="var(--text2)">Fun (${styles.fun})</text>
+        <text x="105" y="60" text-anchor="start" font-size="11" fill="var(--text2)">Feelings (${styles.feelings})</text>
+        <text x="0" y="120" text-anchor="middle" font-size="11" fill="var(--text2)">Values (${styles.values})</text>
+        <text x="-105" y="60" text-anchor="end" font-size="11" fill="var(--text2)">Logic (${styles.logic})</text>
+        <text x="-105" y="-55" text-anchor="end" font-size="11" fill="var(--text2)">Action (${styles.action})</text>
+        <!-- Data Polygon -->
+        <polygon points="
+          0,${-styles.facts} 
+          ${styles.fun * 0.866},${-styles.fun * 0.5} 
+          ${styles.feelings * 0.866},${styles.feelings * 0.5} 
+          0,${styles.values} 
+          ${-styles.logic * 0.866},${styles.logic * 0.5} 
+          ${-styles.action * 0.866},${-styles.action * 0.5}
+        " fill="rgba(124,58,237,0.4)" stroke="var(--purple)" stroke-width="2"/>
+      </svg>
+    </div>
+  `;
+}
+
+function buildAttachmentHTML(r) {
+  return `
+    <div class="vt-card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Attachment Style Trace</div>
+      ${r.hoursTracked >= 3 ? 
+        `<div style="color:var(--date-lt);font-weight:700;font-size:15px">${r.attachmentStyle}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px">Unlocked based on ${r.hoursTracked} hours of interaction data.</div>`
+      : `<div style="color:var(--orange);font-weight:700;font-size:15px">Not Enough Data (${r.hoursTracked}/3 Hours)</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px">Record more conversations to unlock deep attachment classification.</div>`}
+    </div>`;
+}
+
+function buildCoachHTML(r) {
+  return `
+    <div class="chat-box">
+      <div class="chat-msg chat-ai"><strong>Live Coach:</strong> I'm locked onto ${r.subjectName || "their"} communication style! They heavily favor Logic and Action. What do you want to talk to them about?</div>
+      <div class="chat-msg chat-user">I want to go attend a beach clean up with her this weekend. How can I best ask?</div>
+      <div class="chat-msg chat-ai"><strong>Chris Voss Tactics (ASEP) Applied:</strong><br><br>
+        <span style="color:var(--teal)">[Acknowledge]</span> "Since you really value the ocean environment..."<br>
+        <span style="color:var(--teal)">[Soften]</span> "...and I know we usually have busy Saturdays..."<br>
+        <span style="color:var(--teal)">[Label]</span> "...it sounds like doing a proactive beachfront cleanup would resonate with you."<br>
+        <span style="color:var(--teal)">[Mirror]</span> "...resonate with you?"<br>
+        <span style="color:var(--teal)">[Pivot]</span> "Would it be ridiculous to suggest you join me?"<br>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input class="auth-input" placeholder="Ask coach anything..." style="flex:1;margin:0;padding:12px;">
+      <button class="btn btn-primary" style="width:auto;padding:0 16px;border-radius:8px">Send</button>
+    </div>
+  `;
 }
 
 function buildRadial(score, size) {
