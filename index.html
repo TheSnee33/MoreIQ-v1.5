@@ -396,8 +396,9 @@
       </div>
       <div class="vt-card">
         <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">UPLOAD RECORDING</div>
-        <button class="btn btn-outline" style="padding:12px;font-size:14px;margin-bottom:12px">Choose Audio File...</button>
-        <div style="height:60px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--purple-lt);font-size:10px;opacity:0.5;margin-bottom:12px;">[ Waveform Visualizer ]</div>
+        <input type="file" id="voiceUploadInput" accept="audio/*,video/*" style="display:none" onchange="handleVoiceUpload(event)">
+        <button class="btn btn-outline" style="padding:12px;font-size:14px;margin-bottom:12px" onclick="document.getElementById('voiceUploadInput').click()">Choose Audio File...</button>
+        <div id="uploadStatus" style="height:60px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--purple-lt);font-size:10px;opacity:0.5;margin-bottom:12px;">[ Waveform Visualizer ]</div>
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:600">ISOLATE TARGET PROFILE</div>
         <div class="slider-container">
           <div style="position:absolute;height:100%;background:var(--purple);left:20%;right:40%;border-radius:2px"></div>
@@ -526,6 +527,45 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 let currentUser = null;
+
+// Initialize Anonymous Session
+auth.onAuthStateChanged(user => {
+  if (user) currentUser = user;
+  else auth.signInAnonymously().catch(e => console.error("Anon Auth failed:", e));
+});
+
+// -- Voice Profiler Upload --
+async function handleVoiceUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('uploadStatus');
+  statusEl.textContent = "Uploading... (0%)";
+  
+  if (!currentUser) {
+    try { await auth.signInAnonymously(); } 
+    catch(err) { statusEl.textContent = "Auth Error"; return; }
+  }
+
+  const uid = currentUser ? currentUser.uid : "anonymous";
+  const ref = firebase.storage().ref(`voice_profiles/${uid}/${Date.now()}_${file.name}`);
+  const task = ref.put(file);
+  
+  task.on('state_changed', 
+    (snap) => {
+      const p = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+      statusEl.textContent = `Uploading... (${p}%)`;
+    },
+    (err) => {
+      console.error(err);
+      statusEl.textContent = "Error: Check Firebase Rules";
+    },
+    async () => {
+      statusEl.textContent = "Success! [ Waveform Visualizer ]";
+      const url = await ref.getDownloadURL();
+      console.log("File uploaded to:", url);
+    }
+  );
+}
 
 // ── State ──
 let currentMode = null; // "date" | "business"
