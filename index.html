@@ -297,7 +297,42 @@
       <div class="feature-row"><div class="feature-icon">🎧</div><div><div class="feature-title">Live Coaching</div><div class="feature-desc">Whispered suggestions through your Bluetooth headset in real-time</div></div></div>
       <div class="feature-row"><div class="feature-icon">📝</div><div><div class="feature-title">Interest Tracking</div><div class="feature-desc">AI notes what they like, dislike, and mention — never forget a detail</div></div></div>
     </div>
-    <button class="btn btn-primary" onclick="navigate('modeSelect')" style="margin-top:20px;margin-bottom:10px">Get Started</button>
+    <div class="trial-banner">
+      <div class="trial-banner-title">Try 2 recordings free — no account needed</div>
+      <div class="trial-banner-sub">Create an account to save results and earn credits</div>
+    </div>
+    <button class="btn btn-primary" onclick="navigate('modeSelect')" style="margin-bottom:10px">Get Started</button>
+    <button class="btn btn-outline" onclick="navigate('signup')">I already have an account</button>
+  </div>
+
+  <!-- ════ SIGNUP ════ -->
+  <div id="signup" class="screen">
+    <div style="padding:50px 24px 40px">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:48px;margin-bottom:8px">🧠</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:#fff" id="authTitle">Create Your Account</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:6px" id="authSubtitle">Get 5 free credits when you sign up</div>
+      </div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabSignup" onclick="switchAuth('signup')">Sign Up</div>
+        <div class="auth-tab" id="tabSignin" onclick="switchAuth('signin')">Sign In</div>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div id="signupFields">
+        <div class="auth-field"><label class="auth-label">Full Name</label><input class="auth-input" id="authName" placeholder="Your name"></div>
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmail" type="email" placeholder="you@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Phone Number</label><input class="auth-input" id="authPhone" type="tel" placeholder="(555) 555-5555"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPassword" type="password" placeholder="At least 6 characters"></div>
+        <div class="auth-field"><label class="auth-label">Confirm Password</label><input class="auth-input" id="authConfirm" type="password" placeholder="Re-enter password"></div>
+        <div class="auth-field"><label class="auth-label">Instagram Handle</label><input class="auth-input" id="authIG" placeholder="@yourhandle"></div>
+      </div>
+      <div id="signinFields" style="display:none">
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="authEmailIn" type="email" placeholder="you@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="authPasswordIn" type="password" placeholder="Your password"></div>
+      </div>
+      <button class="btn btn-primary" id="authSubmitBtn" onclick="handleAuth()" style="margin-bottom:10px">Create Account</button>
+      <button class="btn btn-outline" id="skipAuthBtn" onclick="navigate('modeSelect')">Skip — 2 free trials left</button>
+    </div>
   </div>
 
   <!-- ════ MODE SELECT ════ -->
@@ -632,6 +667,59 @@ function navigate(screenId) {
 function buildTerms() {
   const body = document.getElementById('discBody');
   body.innerHTML = TERMS.map((t,i) => `${i>0?'<div class="disc-div"></div>':''}<div class="disc-sec"><div class="disc-sec-num">${t.num}</div><p>${t.text}</p></div>`).join('');
+}
+
+// ── Auth Handling ──
+let authModeState = 'signup';
+function switchAuth(mode) {
+  authModeState = mode;
+  document.getElementById('tabSignup').classList.toggle('active', mode==='signup');
+  document.getElementById('tabSignin').classList.toggle('active', mode==='signin');
+  document.getElementById('signupFields').style.display = mode==='signup'?'block':'none';
+  document.getElementById('signinFields').style.display = mode==='signin'?'block':'none';
+  document.getElementById('authTitle').textContent = mode==='signup'?'Create Your Account':'Welcome Back';
+  document.getElementById('authSubtitle').textContent = mode==='signup'?'Get 5 free credits when you sign up':'Sign in to view your history';
+  document.getElementById('authSubmitBtn').textContent = mode==='signup'?'Create Account':'Sign In';
+}
+
+async function handleAuth() {
+  const errorEl = document.getElementById('authError');
+  errorEl.classList.remove('show');
+  const btn = document.getElementById('authSubmitBtn');
+  const oldBtnText = btn.textContent;
+  btn.textContent = 'Please wait...';
+  try {
+    if (authModeState === 'signup') {
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+      const conf = document.getElementById('authConfirm').value;
+      const name = document.getElementById('authName').value;
+      const phone = document.getElementById('authPhone').value;
+      const ig = document.getElementById('authIG').value;
+      if (pass !== conf) throw new Error("Passwords do not match");
+      if (pass.length < 6) throw new Error("Password must be at least 6 characters");
+      
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      
+      const userData = { email, name, phone, ig, credits: { balance: 5 }, referral: { code: cred.user.uid.substring(0,6) }};
+      await db.collection('users').doc(cred.user.uid).set(userData, { merge: true });
+      currentUser = {uid:cred.user.uid, email, displayName:name, data: userData};
+      navigate('modeSelect');
+    } else {
+      const email = document.getElementById('authEmailIn').value;
+      const pass = document.getElementById('authPasswordIn').value;
+      const cred = await auth.signInWithEmailAndPassword(email, pass);
+      const docSnap = await db.collection('users').doc(cred.user.uid).get();
+      currentUser = {uid:cred.user.uid, email, displayName:cred.user.displayName||email.split('@')[0], data: docSnap.data()};
+      navigate('modeSelect');
+    }
+  } catch(e) {
+    errorEl.textContent = e.message;
+    errorEl.classList.add('show');
+  } finally {
+    btn.textContent = oldBtnText;
+  }
 }
 
 // ── Mode Selection ──
