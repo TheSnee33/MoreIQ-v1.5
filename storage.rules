@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // User storage path - only the user can read/write their own files
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Audio upload size limit (50MB max per file)
+    match /users/{userId}/contacts/{contactId}/voiceSamples/{sampleFile} {
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 50 * 1024 * 1024
+                   && request.resource.contentType.matches('audio/.*');
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/contacts/{contactId}/sessions/{sessionId}/{audioFile} {
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 100 * 1024 * 1024
+                   && request.resource.contentType.matches('audio/.*');
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
