@@ -1,5 +1,5 @@
-// ─── MoreIQ: TRAIT DEFINITIONS ────────────────────────────────────────────────
-// Master trait configuration for MoreIQ v1.4
+// ─── Xyrella: TRAIT DEFINITIONS ────────────────────────────────────────────────
+// Master trait configuration for Xyrella v1.5
 // Includes both DateIQ (37 traits) and BusinessIQ (37 traits) = 74 total
 //
 // Each mode uses 4 categories:

@@ -1,6 +1,6 @@
 /**
- * MoreIQ v1.5 Firebase Schema
- * Database structure for MoreIQ (DateIQ + BusinessIQ)
+ * Xyrella v1.5 Firebase Schema
+ * Database structure for Xyrella (DateIQ + BusinessIQ)
  * Project: dateiq-3f9b8
  *
  * Key Features:

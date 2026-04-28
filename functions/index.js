@@ -1,5 +1,5 @@
 /**
- * MoreIQ Cloud Functions (Firebase)
+ * Xyrella Cloud Functions (Firebase)
  * Project: dateiq-3f9b8
  *
  * Callable functions:
