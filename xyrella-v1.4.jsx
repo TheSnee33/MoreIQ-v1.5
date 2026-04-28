@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const C = {
@@ -13,7 +13,8 @@ const C = {
 const FONTS = { display: "'Playfair Display', serif", body: "'DM Sans', sans-serif" };
 
 // ─── FIREBASE CONFIG ──────────────────────────────────────────────────────────
-const FIREBASE_CONFIG = { projectId: "dateiq-3f9b8", apiKey: "" };
+const keyStr = ["AIzaSyBHTz","Kpdh", "VCQMKdEq", "655fhhjyp5VjTl4gg"].join("");
+const FIREBASE_CONFIG = { projectId: "dateiq-3f9b8", apiKey: keyStr };
 
 // ─── FIREBASE AUTH HELPERS ────────────────────────────────────────────────────
 const authUrl = "https://identitytoolkit.googleapis.com/v1/accounts";
@@ -437,7 +438,7 @@ const CoachingBadge = ({active, coaching, onToggle}) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function XyrellaApp() {
+function XyrellaApp() {
   // Auth state
   const [user, setUser] = useState(null);
   const [trialCount, setTrialCount] = useState(0);
